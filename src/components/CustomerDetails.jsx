@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Eye, ShoppingCart, Calendar, Phone, MapPin, User } from 'lucide-react';
-import { checkupService, orderService } from '../utils/database';
+import { checkupService, orderService, superAdminService } from '../utils/database';
+import { useStore } from '../contexts/StoreContext';
 import CheckupDisplay from './CheckupDisplay';
 
 const CustomerDetails = ({ customer, onClose }) => {
+  const { currentStore, isSuperAdmin } = useStore();
   const [checkups, setCheckups] = useState([]);
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('info');
@@ -16,8 +18,24 @@ const CustomerDetails = ({ customer, onClose }) => {
 
   const loadCustomerData = async () => {
     try {
-      const customerCheckups = await checkupService.getByCustomerId(customer.id);
-      const customerOrders = await orderService.getByCustomerId(customer.id);
+      let customerCheckups = [];
+      let customerOrders = [];
+
+      if (isSuperAdmin) {
+        // For super admin, get all checkups and orders then filter by customer ID
+        const allCheckups = await superAdminService.getAllCheckups();
+        const allOrders = await superAdminService.getAllOrders();
+        customerCheckups = allCheckups.filter(checkup => checkup.customer_id === customer.id);
+        customerOrders = allOrders.filter(order => order.customer_id === customer.id);
+      } else {
+        // For regular store access, use store ID
+        const storeId = customer.store_id || currentStore?.id;
+        if (storeId) {
+          customerCheckups = await checkupService.getByCustomerId(customer.id, storeId);
+          customerOrders = await orderService.getByCustomerId(customer.id, storeId);
+        }
+      }
+
       setCheckups(customerCheckups);
       setOrders(customerOrders);
     } catch (error) {
@@ -174,9 +192,14 @@ const CustomerDetails = ({ customer, onClose }) => {
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span className="font-medium">Order Date: {formatDate(order.order_date)}</span>
                           </div>
-                          {order.delivery_date && (
+                          {order.delivered_date && (
                             <div className="text-sm text-gray-600">
-                              Delivery: {formatDate(order.delivery_date)}
+                              Delivered: {formatDate(order.delivered_date)}
+                            </div>
+                          )}
+                          {order.expected_delivery_date && !order.delivered_date && (
+                            <div className="text-sm text-gray-600">
+                              Expected: {formatDate(order.expected_delivery_date)}
                             </div>
                           )}
                         </div>
