@@ -105,33 +105,24 @@ const Reports = () => {
           return;
         }
 
-        if (reportMode === 'consolidated') {
-          // Check if all stores are selected
-          if (selectedStores.length === availableStores.length) {
-            salesData = await superAdminService.getConsolidatedSalesReport(startDate, endDate);
-          } else {
-            salesData = await superAdminService.getConsolidatedSalesReportForStores(startDate, endDate, selectedStores);
-          }
+        // Get individual orders for all selected stores
+        if (selectedStores.length === availableStores.length) {
+          salesData = await superAdminService.getAllStoresIndividualOrdersReport(startDate, endDate);
         } else {
-          // Check if all stores are selected
-          if (selectedStores.length === availableStores.length) {
-            salesData = await superAdminService.getAllStoresSalesReport(startDate, endDate);
-          } else {
-            salesData = await superAdminService.getSelectedStoresSalesReport(startDate, endDate, selectedStores);
-          }
+          salesData = await superAdminService.getSelectedStoresIndividualOrdersReport(startDate, endDate, selectedStores);
         }
       } else {
-        salesData = await orderService.getSalesReport(startDate, endDate, currentStore.id);
+        salesData = await orderService.getIndividualOrdersReport(startDate, endDate, currentStore.id);
       }
 
       setReportData(salesData || []);
 
-      // Calculate summary
+      // Calculate summary from individual orders
       const safeData = salesData || [];
-      const totalOrders = safeData.reduce((sum, item) => sum + (item.total_orders || 0), 0);
-      const totalSales = safeData.reduce((sum, item) => sum + (item.total_sales || 0), 0);
-      const totalAdvance = safeData.reduce((sum, item) => sum + (item.total_advance || 0), 0);
-      const totalBalance = safeData.reduce((sum, item) => sum + (item.total_balance || 0), 0);
+      const totalOrders = safeData.length;
+      const totalSales = safeData.reduce((sum, item) => sum + (item.total_amount || 0), 0);
+      const totalAdvance = safeData.reduce((sum, item) => sum + (item.advance_amount || 0), 0);
+      const totalBalance = safeData.reduce((sum, item) => sum + (item.balance_amount || 0), 0);
       const averageOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
       setSummary({
@@ -169,29 +160,39 @@ const Reports = () => {
   };
 
   const exportReport = () => {
-    const headers = isSuperAdmin && reportMode === 'by_store'
-      ? ['Store', 'Date', 'Orders', 'Total Sales', 'Advance', 'Balance']
-      : ['Date', 'Orders', 'Total Sales', 'Advance', 'Balance'];
+    const headers = isSuperAdmin
+      ? ['Order ID', 'Store', 'Date', 'Customer', 'Phone', 'Frame', 'Lenses', 'Total Amount', 'Advance', 'Balance', 'Status']
+      : ['Order ID', 'Date', 'Customer', 'Phone', 'Frame', 'Lenses', 'Total Amount', 'Advance', 'Balance', 'Status'];
 
     const csvContent = [
       headers.join(','),
       ...reportData.map(row => {
-        if (isSuperAdmin && reportMode === 'by_store') {
+        if (isSuperAdmin) {
           return [
+            row.id || '',
             row.store_name || 'Unknown Store',
-            row.date,
-            row.total_orders,
-            row.total_sales,
-            row.total_advance,
-            row.total_balance
+            row.order_date,
+            row.customer_name || '',
+            row.customer_phone || '',
+            row.frame || '',
+            row.lenses || '',
+            row.total_amount || 0,
+            row.advance_amount || 0,
+            row.balance_amount || 0,
+            row.status || ''
           ].join(',');
         } else {
           return [
-            row.date,
-            row.total_orders,
-            row.total_sales,
-            row.total_advance,
-            row.total_balance
+            row.id || '',
+            row.order_date,
+            row.customer_name || '',
+            row.customer_phone || '',
+            row.frame || '',
+            row.lenses || '',
+            row.total_amount || 0,
+            row.advance_amount || 0,
+            row.balance_amount || 0,
+            row.status || ''
           ].join(',');
         }
       })
@@ -216,7 +217,7 @@ const Reports = () => {
       prefix = currentStore?.name || 'store';
     }
 
-    a.download = `${prefix}-sales-report-${startDate}-to-${endDate}.csv`;
+    a.download = `${prefix}-orders-report-${startDate}-to-${endDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -335,22 +336,7 @@ const Reports = () => {
             </select>
           </div>
 
-          {/* Super Admin Report Mode */}
-          {isSuperAdmin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                View Mode
-              </label>
-              <select
-                value={reportMode}
-                onChange={(e) => setReportMode(e.target.value)}
-                className="input-field"
-              >
-                <option value="consolidated">Combined</option>
-                <option value="by_store">By Store</option>
-              </select>
-            </div>
-          )}
+
 
           {/* Store Selection for Super Admin */}
           {isSuperAdmin && (
@@ -482,9 +468,9 @@ const Reports = () => {
       <div className="card">
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            Sales Data ({reportData.length} {reportData.length === 1 ? 'day' : 'days'})
+            Order Details ({reportData.length} {reportData.length === 1 ? 'order' : 'orders'})
           </h2>
-          
+
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin h-8 w-8 border-2 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
@@ -493,7 +479,7 @@ const Reports = () => {
           ) : reportData.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No sales data found for the selected period</p>
+              <p>No orders found for the selected period</p>
               <p className="text-sm">Try adjusting your date range</p>
             </div>
           ) : (
@@ -501,7 +487,10 @@ const Reports = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {isSuperAdmin && reportMode === 'by_store' && (
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Order ID
+                    </th>
+                    {isSuperAdmin && (
                       <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Store
                       </th>
@@ -510,10 +499,13 @@ const Reports = () => {
                       Date
                     </th>
                     <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Orders
+                      Customer
                     </th>
                     <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Sales
+                      Frame
+                    </th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
                     </th>
                     <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Advance
@@ -521,30 +513,55 @@ const Reports = () => {
                     <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Balance
                     </th>
+                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {reportData.map((row, index) => (
-                    <tr key={`${row.date}-${row.store_id || index}`} className="hover:bg-gray-50">
-                      {isSuperAdmin && reportMode === 'by_store' && (
+                    <tr key={row.id || index} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-mono text-gray-900">
+                        #{row.id || 'N/A'}
+                      </td>
+                      {isSuperAdmin && (
                         <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
                           {row.store_name || 'Unknown Store'}
                         </td>
                       )}
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                        {formatDate(row.date)}
+                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                        {formatDate(row.order_date)}
                       </td>
                       <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                        {row.total_orders}
+                        <div>
+                          <div className="font-medium">{row.customer_name || 'N/A'}</div>
+                          <div className="text-gray-500">{row.customer_phone || 'N/A'}</div>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                        <div>
+                          <div className="font-medium">{row.frame || 'N/A'}</div>
+                          <div className="text-gray-500 text-xs">{row.lenses || 'N/A'}</div>
+                        </div>
                       </td>
                       <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 font-medium">
-                        {formatCurrency(row.total_sales)}
+                        {formatCurrency(row.total_amount)}
                       </td>
                       <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-green-600">
-                        {formatCurrency(row.total_advance)}
+                        {formatCurrency(row.advance_amount)}
                       </td>
                       <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-red-600">
-                        {formatCurrency(row.total_balance)}
+                        {formatCurrency(row.balance_amount)}
+                      </td>
+                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          row.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                          row.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          row.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {row.status || 'pending'}
+                        </span>
                       </td>
                     </tr>
                   ))}

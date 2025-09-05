@@ -216,6 +216,16 @@ const OrderDetails = ({ order, onClose }) => {
               </div>
             )}
 
+            {/* Order Notes */}
+            {order.notes && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-3">Order Notes</h4>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-gray-800 whitespace-pre-wrap">{order.notes}</p>
+                </div>
+              </div>
+            )}
+
             {/* Payment Details */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <h4 className="font-semibold text-gray-900 mb-3">Payment Details</h4>

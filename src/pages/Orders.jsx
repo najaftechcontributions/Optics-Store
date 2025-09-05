@@ -46,6 +46,7 @@ const Orders = () => {
       filtered = filtered.filter(order =>
         order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer_phone.includes(searchTerm) ||
+        order.id.toString().includes(searchTerm) ||
         (isSuperAdmin && order.store_name && order.store_name.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -176,7 +177,7 @@ const Orders = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
               type="text"
-              placeholder={isSuperAdmin ? "Search by customer, phone, or store..." : "Search by customer name or phone..."}
+              placeholder={isSuperAdmin ? "Search by order ID, customer, phone, or store..." : "Search by order ID, customer name, or phone..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-field pl-10"
@@ -227,7 +228,10 @@ const Orders = () => {
                         <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{order.customer_name}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">{order.customer_name}</h3>
+                          <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded">#{order.id}</span>
+                        </div>
                         <p className="text-gray-600 text-sm sm:text-base">{order.customer_phone}</p>
                         {isSuperAdmin && order.store_name && (
                           <p className="text-xs sm:text-sm text-blue-600 font-medium mt-1">{order.store_name}</p>
@@ -346,10 +350,15 @@ const Orders = () => {
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t border-gray-100">
-                    <div className="text-xs sm:text-sm text-gray-500">
-                      Order ID: #{order.id}
+                  {/* Order Notes */}
+                  {order.notes && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h5 className="text-sm font-medium text-gray-700 mb-1">Notes:</h5>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{order.notes}</p>
                     </div>
+                  )}
+
+                  <div className="flex justify-end pt-4 border-t border-gray-100">
                     <div className="flex space-x-2 text-xs sm:text-sm">
                       <span>Advance: <span className="font-medium">{formatCurrency(order.advance_amount)}</span></span>
                     </div>

@@ -16,7 +16,8 @@ const OrderForm = ({ order, onClose }) => {
     total_amount: '',
     advance_amount: '',
     balance_amount: '',
-    status: 'pending'
+    status: 'pending',
+    notes: ''
   });
   const [customers, setCustomers] = useState([]);
   const [checkups, setCheckups] = useState([]);
@@ -44,7 +45,8 @@ const OrderForm = ({ order, onClose }) => {
         total_amount: order.total_amount || '',
         advance_amount: order.advance_amount || '',
         balance_amount: order.balance_amount || '',
-        status: order.status || 'pending'
+        status: order.status || 'pending',
+        notes: order.notes || ''
       });
       
       if (order.customer_id) {
@@ -412,6 +414,20 @@ const OrderForm = ({ order, onClose }) => {
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Order Notes
+              </label>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Add any special instructions or notes for this order..."
+                rows={3}
+              />
             </div>
           </div>
 

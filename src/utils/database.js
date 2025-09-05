@@ -454,18 +454,42 @@ const orderService = {
   getSalesReport: async (startDate, endDate, storeId) => {
     const result = await client.execute({
       sql: `
-        SELECT 
+        SELECT
           DATE(order_date) as date,
           COUNT(*) as total_orders,
           SUM(total_amount) as total_sales,
           SUM(advance_amount) as total_advance,
           SUM(balance_amount) as total_balance
-        FROM orders 
+        FROM orders
         WHERE DATE(order_date) BETWEEN ? AND ? AND store_id = ?
         GROUP BY DATE(order_date)
         ORDER BY date DESC
       `,
       args: [startDate, endDate, storeId]
+    });
+    return result.rows;
+  },
+
+  getIndividualOrdersReport: async (startDate, endDate, storeId) => {
+    const result = await client.execute({
+      sql: `
+        SELECT
+          o.id,
+          o.order_date,
+          o.total_amount,
+          o.advance_amount,
+          o.balance_amount,
+          o.status,
+          o.frame,
+          o.lenses,
+          c.name as customer_name,
+          c.phone as customer_phone
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id AND c.store_id = ?
+        WHERE DATE(o.order_date) BETWEEN ? AND ? AND o.store_id = ?
+        ORDER BY o.order_date DESC, o.id DESC
+      `,
+      args: [storeId, startDate, endDate, storeId]
     });
     return result.rows;
   },
@@ -645,6 +669,67 @@ const superAdminService = {
         WHERE DATE(order_date) BETWEEN ? AND ? AND store_id IN (${placeholders})
         GROUP BY DATE(order_date)
         ORDER BY date DESC
+      `,
+      args: [startDate, endDate, ...storeIds]
+    });
+    return result.rows;
+  },
+
+  // Get individual orders report across all stores
+  getAllStoresIndividualOrdersReport: async (startDate, endDate) => {
+    const result = await client.execute({
+      sql: `
+        SELECT
+          o.id,
+          o.order_date,
+          o.total_amount,
+          o.advance_amount,
+          o.balance_amount,
+          o.status,
+          o.frame,
+          o.lenses,
+          c.name as customer_name,
+          c.phone as customer_phone,
+          s.name as store_name,
+          s.id as store_id
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN stores s ON o.store_id = s.id
+        WHERE DATE(o.order_date) BETWEEN ? AND ?
+        ORDER BY o.order_date DESC, o.id DESC
+      `,
+      args: [startDate, endDate]
+    });
+    return result.rows;
+  },
+
+  // Get individual orders report for specific stores
+  getSelectedStoresIndividualOrdersReport: async (startDate, endDate, storeIds = []) => {
+    if (!storeIds || storeIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = storeIds.map(() => '?').join(',');
+    const result = await client.execute({
+      sql: `
+        SELECT
+          o.id,
+          o.order_date,
+          o.total_amount,
+          o.advance_amount,
+          o.balance_amount,
+          o.status,
+          o.frame,
+          o.lenses,
+          c.name as customer_name,
+          c.phone as customer_phone,
+          s.name as store_name,
+          s.id as store_id
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN stores s ON o.store_id = s.id
+        WHERE DATE(o.order_date) BETWEEN ? AND ? AND o.store_id IN (${placeholders})
+        ORDER BY o.order_date DESC, o.id DESC
       `,
       args: [startDate, endDate, ...storeIds]
     });
