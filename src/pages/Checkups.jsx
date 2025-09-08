@@ -132,10 +132,17 @@ const Checkups = () => {
         loadCustomerCheckups(selectedCustomer.id); // Refresh checkups after delete
       } catch (error) {
         console.error('Error deleting checkup:', error);
-        showError(
-          'Delete Failed',
-          'Error deleting checkup. Please try again.'
-        );
+        if (error.message && error.message.includes('Cannot delete checkup')) {
+          showError(
+            'Cannot Delete Checkup',
+            error.message
+          );
+        } else {
+          showError(
+            'Delete Failed',
+            'Error deleting checkup. Please try again.'
+          );
+        }
       }
     }
   };

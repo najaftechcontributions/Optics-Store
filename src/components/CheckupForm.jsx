@@ -45,6 +45,13 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
       return;
     }
 
+    // Validate required fields
+    if (!formData.tested_by || formData.tested_by.trim() === '') {
+      setError('Tested by field is required.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const checkupData = {
         ...formData,
@@ -77,9 +84,9 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
             <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
               <Eye className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" />
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-xl lg:text-2xl font-bold truncate">{checkup ? 'Edit' : 'New'} Eye Examination - KASHMIR OPTICAL CENTRE</h1>
-                <p className="text-xs sm:text-sm text-gray-300 hidden sm:block">Lekhar Road Near Sukhana Foundation, Jhang Syedan, Islamabad Capital Territory</p>
-                <p className="text-sm sm:text-lg font-semibold mt-1 hidden md:block">SUNGLASSES & EYEWEAR STORE</p>
+                <h1 className="text-sm sm:text-xl lg:text-2xl font-bold truncate">{checkup ? 'Edit' : 'New'} Eye Examination - {import.meta.env.VITE_STORE_NAME_FULL || 'KASHMIR OPTICAL CENTRE'}</h1>
+                <p className="text-xs sm:text-sm text-gray-300 hidden sm:block">{import.meta.env.VITE_STORE_ADDRESS || 'Lekhar Road Near Sukhana Foundation, Jhang Syedan, Islamabad Capital Territory'}</p>
+                <p className="text-sm sm:text-lg font-semibold mt-1 hidden md:block">{import.meta.env.VITE_STORE_TAGLINE || 'SUNGLASSES & EYEWEAR STORE'}</p>
               </div>
             </div>
             <button
@@ -132,34 +139,32 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
               <Eye className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Eye Examination
             </h3>
-            
+
             <div className="border-2 border-gray-900 rounded-lg overflow-x-auto">
-              <div className="min-w-[600px]">
+              <div className="min-w-[500px]">
                 {/* Header Row */}
-                <div className="grid grid-cols-9 bg-gray-100 border-b-2 border-gray-900">
+                <div className="grid grid-cols-7 bg-gray-100 border-b-2 border-gray-900">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-bold text-center text-xs sm:text-sm">Serial #</div>
-                  <div className="col-span-4 border-r-2 border-gray-900 text-center">
+                  <div className="col-span-3 border-r-2 border-gray-900 text-center">
                     <div className="p-2 border-b border-gray-900 font-bold text-sm sm:text-lg">RIGHT EYE</div>
-                    <div className="grid grid-cols-4">
+                    <div className="grid grid-cols-3">
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">SPHERICAL</div>
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">CYLINDRICAL</div>
-                      <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">AXIS</div>
-                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">ADD</div>
+                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">AXIS</div>
                     </div>
                   </div>
-                  <div className="col-span-4 text-center">
+                  <div className="col-span-3 text-center">
                     <div className="p-2 border-b border-gray-900 font-bold text-sm sm:text-lg">LEFT EYE</div>
-                    <div className="grid grid-cols-4">
+                    <div className="grid grid-cols-3">
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">SPHERICAL</div>
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">CYLINDRICAL</div>
-                      <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">AXIS</div>
-                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">ADD</div>
+                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">AXIS</div>
                     </div>
                   </div>
                 </div>
 
                 {/* D.V Row */}
-                <div className="grid grid-cols-9 border-b border-gray-900">
+                <div className="grid grid-cols-7 border-b border-gray-900">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center text-xs sm:text-sm">D.V</div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -181,21 +186,11 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r border-gray-900">
+                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
                     <input
                       type="text"
                       name="right_eye_axis_dv"
                       value={formData.right_eye_axis_dv}
-                      onChange={handleChange}
-                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
-                      placeholder="-"
-                    />
-                  </div>
-                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
-                    <input
-                      type="text"
-                      name="right_eye_add"
-                      value={formData.right_eye_add}
                       onChange={handleChange}
                       className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
                       placeholder="-"
@@ -221,7 +216,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r border-gray-900">
+                  <div className="p-1 sm:p-2">
                     <input
                       type="text"
                       name="left_eye_axis_dv"
@@ -231,20 +226,10 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2">
-                    <input
-                      type="text"
-                      name="left_eye_add"
-                      value={formData.left_eye_add}
-                      onChange={handleChange}
-                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
-                      placeholder="-"
-                    />
-                  </div>
                 </div>
 
                 {/* N.V Row */}
-                <div className="grid grid-cols-9">
+                <div className="grid grid-cols-7 border-b border-gray-900">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center text-xs sm:text-sm">N.V</div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -266,7 +251,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r border-gray-900">
+                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
                     <input
                       type="text"
                       name="right_eye_axis_nv"
@@ -275,9 +260,6 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
                       placeholder="-"
                     />
-                  </div>
-                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
-                    <span className="text-xs text-gray-400">N/A</span>
                   </div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -299,7 +281,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r border-gray-900">
+                  <div className="p-1 sm:p-2">
                     <input
                       type="text"
                       name="left_eye_axis_nv"
@@ -309,24 +291,44 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2">
-                    <span className="text-xs text-gray-400">N/A</span>
+                </div>
+                {/* ADD Section */}
+                <div className="grid grid-cols-7">
+                  <div className="p-2 sm:p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center text-xs sm:text-sm">ADD</div>
+                  <div className="p-1 sm:p-2 border-r-2 border-gray-900 col-span-3">
+                    <input
+                      type="text"
+                      name="right_eye_add"
+                      value={formData.right_eye_add}
+                      onChange={handleChange}
+                      placeholder="ADD value"
+                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
+                    />
+                  </div>
+                  <div className="p-1 sm:p-2 border-r border-gray-900 col-span-3">
+                    <input
+                      type="text"
+                      name="left_eye_add"
+                      value={formData.left_eye_add}
+                      onChange={handleChange}
+                      placeholder="ADD value"
+                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
+                    />
                   </div>
                 </div>
               </div>
-
-              {/* IPD Bridge Details */}
-              <div className="mt-4 sm:mt-6 p-3 sm:p-4 border-2 border-gray-900 rounded-lg bg-gray-50">
-                <h4 className="font-bold text-right text-sm sm:text-lg mb-3">IPD BRIDGE</h4>
-                <textarea
-                  name="ipd_bridge"
-                  value={formData.ipd_bridge}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full p-2 sm:p-3 border border-gray-300 rounded text-xs sm:text-sm"
-                  placeholder="Enter IPD Bridge details..."
-                />
-              </div>
+            </div>
+            {/* IPD Bridge Details */}
+            <div className="mt-4 sm:mt-6 p-3 sm:p-4 border-2 border-gray-900 rounded-lg bg-gray-50">
+              <h4 className="font-bold text-left text-sm sm:text-lg mb-3">IPD BRIDGE</h4>
+              <textarea
+                name="ipd_bridge"
+                value={formData.ipd_bridge}
+                onChange={handleChange}
+                rows={3}
+                className="w-full p-2 sm:p-3 border border-gray-300 rounded text-xs sm:text-sm"
+                placeholder="Enter IPD Bridge details..."
+              />
             </div>
           </div>
 
@@ -351,7 +353,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <Stethoscope className="h-4 w-4 inline mr-1" />
-                  Tested By
+                  Tested By *
                 </label>
                 <input
                   type="text"
@@ -360,6 +362,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                   onChange={handleChange}
                   className="input-field"
                   placeholder="Enter examiner name"
+                  required
                 />
               </div>
             </div>

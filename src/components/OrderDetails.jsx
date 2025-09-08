@@ -103,7 +103,7 @@ const OrderDetails = ({ order, onClose }) => {
 
         <div className="p-2 sm:p-6 overflow-y-auto max-h-[calc(95vh-162px)] space-y-6">
           {/* Order Summary */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <ShoppingCart className="h-5 w-5 mr-2" />
               Order Summary
@@ -252,7 +252,7 @@ const OrderDetails = ({ order, onClose }) => {
 
           {/* Customer Information */}
           {customer && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <User className="h-5 w-5 mr-2" />
                 Customer Information
@@ -303,7 +303,7 @@ const OrderDetails = ({ order, onClose }) => {
 
           {/* Linked Checkup Details */}
           {checkup ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
                 Prescription Details (from linked checkup)
@@ -316,7 +316,7 @@ const OrderDetails = ({ order, onClose }) => {
               <CheckupDisplay checkup={checkup} showHeader={true} compact={false} />
             </div>
           ) : order.checkup_id ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
                 Prescription Details
@@ -328,7 +328,7 @@ const OrderDetails = ({ order, onClose }) => {
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Eye className="h-5 w-5 mr-2" />
                 Prescription Details

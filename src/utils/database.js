@@ -2,8 +2,8 @@ import { createClient } from '@libsql/client';
 
 // Turso client setup
 const client = createClient({
-  url: 'libsql://kashmiroptics-adilahmed69.aws-ap-south-1.turso.io',
-  authToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NTY3MzUzMjAsImlkIjoiZTM3MzZkMjEtZjdlOS00Yzc5LWFiMGEtOThhMWViNGJkNzQ3IiwicmlkIjoiOGViY2JiMGYtM2FhZC00N2IxLWE3YmYtYjQxZjQ3YWQ1N2EwIn0.j1ZA8EHkWjl4MOiSi6EdSfBmhs6Qb0ui6sy-tu5kMJWcD8FfXIKYF38eEFrak4kA3FaYLNsleQmrmAtPz4vsAA'
+  url: import.meta.env.VITE_DATABASE_URL || 'libsql://kashmiroptics-adilahmed69.aws-ap-south-1.turso.io',
+  authToken: import.meta.env.VITE_DATABASE_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NTY3MzUzMjAsImlkIjoiZTM3MzZkMjEtZjdlOS00Yzc5LWFiMGEtOThhMWViNGJkNzQ3IiwicmlkIjoiOGViY2JiMGYtM2FhZC00N2IxLWE3YmYtYjQxZjQ3YWQ1N2EwIn0.j1ZA8EHkWjl4MOiSi6EdSfBmhs6Qb0ui6sy-tu5kMJWcD8FfXIKYF38eEFrak4kA3FaYLNsleQmrmAtPz4vsAA'
 });
 
 let initialized = false;
@@ -425,6 +425,17 @@ const checkupService = {
   },
 
   delete: async (id, storeId) => {
+    // First check if there are any orders referencing this checkup
+    const ordersCheck = await client.execute({
+      sql: 'SELECT COUNT(*) as count FROM orders WHERE checkup_id = ? AND store_id = ?',
+      args: [id, storeId]
+    });
+
+    const orderCount = ordersCheck.rows[0].count;
+    if (orderCount > 0) {
+      throw new Error(`Cannot delete checkup: ${orderCount} order(s) are linked to this checkup. Please remove the links from orders first.`);
+    }
+
     const result = await client.execute({
       sql: 'DELETE FROM checkups WHERE id = ? AND store_id = ?',
       args: [id, storeId]

@@ -250,7 +250,7 @@ const OrderWizard = ({ onClose }) => {
     ];
 
     return (
-      <div className="flex items-center justify-center space-x-4 mb-8">
+      <div className="flex items-center justify-center sm:space-x-4 mb-8">
         {steps.map((step, index) => {
           const Icon = step.icon;
           const isActive = currentStep === step.number;
@@ -487,6 +487,7 @@ const OrderWizard = ({ onClose }) => {
               value={checkupData.tested_by}
               onChange={handleCheckupChange}
               className="input-field"
+              required
               placeholder="Enter examiner name"
             />
           </div>
@@ -495,30 +496,29 @@ const OrderWizard = ({ onClose }) => {
         {/* Eye examination grid */}
         <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-9 bg-gray-100 border-b-2 border-gray-900">
-            <div className="p-3 border-r border-gray-900 font-bold text-center">Serial #</div>
-            <div className="col-span-4 border-r-2 border-gray-900 text-center">
+          <div className="grid grid-cols-7 bg-gray-100 border-b-2 border-gray-900">
+            <div className="p-3 border-r border-gray-900 font-bold text-center hidden sm:flex items-center justify-center">Serial #</div>
+            <div className="p-3 border-r border-gray-900 font-bold text-center flex sm:hidden items-center justify-center">#</div>
+            <div className="col-span-3 border-r-2 border-gray-900 text-center">
               <div className="p-2 border-b border-gray-900 font-bold text-lg">RIGHT EYE</div>
-              <div className="grid grid-cols-4">
+              <div className="grid grid-cols-3">
                 <div className="p-2 border-r border-gray-900 font-semibold">SPH</div>
                 <div className="p-2 border-r border-gray-900 font-semibold">CYL</div>
-                <div className="p-2 border-r border-gray-900 font-semibold">AXIS</div>
-                <div className="p-2 font-semibold">ADD</div>
+                <div className="p-2 font-semibold">AXIS</div>
               </div>
             </div>
-            <div className="col-span-4 text-center">
+            <div className="col-span-3 text-center">
               <div className="p-2 border-b border-gray-900 font-bold text-lg">LEFT EYE</div>
-              <div className="grid grid-cols-4">
+              <div className="grid grid-cols-3">
                 <div className="p-2 border-r border-gray-900 font-semibold">SPH</div>
                 <div className="p-2 border-r border-gray-900 font-semibold">CYL</div>
-                <div className="p-2 border-r border-gray-900 font-semibold">AXIS</div>
-                <div className="p-2 font-semibold">ADD</div>
+                <div className="p-2 font-semibold">AXIS</div>
               </div>
             </div>
           </div>
 
           {/* D.V Row */}
-          <div className="grid grid-cols-9 border-b border-gray-900">
+          <div className="grid grid-cols-7 border-b border-gray-900">
             <div className="p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center">D.V</div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -540,21 +540,11 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r border-gray-900">
+            <div className="p-2 border-r-2 border-gray-900">
               <input
                 type="text"
                 name="right_eye_axis_dv"
                 value={checkupData.right_eye_axis_dv}
-                onChange={handleCheckupChange}
-                className="w-full p-1 border border-gray-300 rounded text-center"
-                placeholder="-"
-              />
-            </div>
-            <div className="p-2 border-r-2 border-gray-900">
-              <input
-                type="text"
-                name="right_eye_add"
-                value={checkupData.right_eye_add}
                 onChange={handleCheckupChange}
                 className="w-full p-1 border border-gray-300 rounded text-center"
                 placeholder="-"
@@ -580,7 +570,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r border-gray-900">
+            <div className="p-2">
               <input
                 type="text"
                 name="left_eye_axis_dv"
@@ -590,20 +580,10 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2">
-              <input
-                type="text"
-                name="left_eye_add"
-                value={checkupData.left_eye_add}
-                onChange={handleCheckupChange}
-                className="w-full p-1 border border-gray-300 rounded text-center"
-                placeholder="-"
-              />
-            </div>
           </div>
 
           {/* N.V Row */}
-          <div className="grid grid-cols-9">
+          <div className="grid grid-cols-7 border-b border-gray-900">
             <div className="p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center">N.V</div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -625,7 +605,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r border-gray-900">
+            <div className="p-2 border-r-2 border-gray-900">
               <input
                 type="text"
                 name="right_eye_axis_nv"
@@ -634,9 +614,6 @@ const OrderWizard = ({ onClose }) => {
                 className="w-full p-1 border border-gray-300 rounded text-center"
                 placeholder="-"
               />
-            </div>
-            <div className="p-2 border-r-2 border-gray-900">
-              <span className="text-xs text-gray-400">N/A</span>
             </div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -658,7 +635,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r border-gray-900">
+            <div className="p-2">
               <input
                 type="text"
                 name="left_eye_axis_nv"
@@ -668,23 +645,43 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2">
-              <span className="text-xs text-gray-400">N/A</span>
+          </div>
+          {/* ADD Section */}
+          <div className="grid grid-cols-7">
+            <div className="p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center">ADD</div>
+            <div className="p-2 border-r border-gray-900 col-span-3">
+              <input
+                type="text"
+                name="right_eye_add"
+                value={checkupData.right_eye_add}
+                onChange={handleCheckupChange}
+                placeholder="ADD value"
+                className="w-full p-1 border border-gray-300 rounded text-center"
+              />
+            </div>
+            <div className="p-2 col-span-3">
+              <input
+                type="text"
+                name="left_eye_add"
+                value={checkupData.left_eye_add}
+                onChange={handleCheckupChange}
+                placeholder="ADD value"
+                className="w-full p-1 border border-gray-300 rounded text-center"
+              />
             </div>
           </div>
         </div>
 
+
         {/* IPD Bridge details */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            IPD Bridge
-          </label>
+        <div className="p-4 border-2 border-gray-900 rounded-lg bg-gray-50">
+          <h4 className="font-bold text-left text-lg mb-3">IPD BRIDGE</h4>
           <textarea
             name="ipd_bridge"
             value={checkupData.ipd_bridge}
             onChange={handleCheckupChange}
             rows={3}
-            className="input-field"
+            className="w-full p-3 border border-gray-300 rounded"
             placeholder="Enter IPD Bridge details..."
           />
         </div>
@@ -893,7 +890,7 @@ const OrderWizard = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
+        <div className="p-2 sm:p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
           {/* Step indicator */}
           {renderStepIndicator()}
 

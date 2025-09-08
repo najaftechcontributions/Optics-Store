@@ -71,7 +71,7 @@ const Layout = ({ children }) => {
           <div className="flex items-center space-x-2 h-full">
             <Eye className="h-8 w-8 text-white" />
             <div className="text-white flex-1">
-              <h1 className="font-bold text-lg">{currentStore?.name || 'Kashmir Optical'}</h1>
+              <h1 className="font-bold text-lg">{currentStore?.name || import.meta.env.VITE_STORE_NAME || 'Kashmir Optical'}</h1>
               <p className="text-xs text-primary-100">Management System</p>
             </div>
           </div>

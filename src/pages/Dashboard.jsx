@@ -144,7 +144,7 @@ const Dashboard = () => {
         <div className="flex items-center space-x-3">
           <Eye className="h-10 w-10" />
           <div>
-            <h1 className="text-2xl font-bold">Kashmir Optical Centre</h1>
+            <h1 className="text-2xl font-bold">{import.meta.env.VITE_STORE_NAME_FULL || 'Kashmir Optical Centre'}</h1>
             <p className="text-primary-100">Management Dashboard</p>
           </div>
         </div>

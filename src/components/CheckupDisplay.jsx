@@ -18,10 +18,9 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
     return { spherical, cylindrical, axisValue };
   };
 
-  const renderEyeData = (title, sphDV, cylDV, axisDV, addValue, sphNV, cylNV, axisNV) => {
+  const renderEyeData = (title, sphDV, cylDV, axisDV, sphNV, cylNV, axisNV) => {
     const dvData = formatPrescription(sphDV, cylDV, axisDV);
     const nvData = formatPrescription(sphNV, cylNV, axisNV);
-    const addFormatted = addValue || '---';
 
     return (
       <div className="space-y-3">
@@ -33,7 +32,7 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
             <Eye className="h-4 w-4 mr-1" />
             Distance Vision (D.V)
           </div>
-          <div className="grid grid-cols-4 gap-2 text-sm">
+          <div className="grid grid-cols-3 gap-2 text-sm">
             <div className="text-center">
               <div className="text-xs text-gray-600 mb-1">SPH</div>
               <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
@@ -50,12 +49,6 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="text-xs text-gray-600 mb-1">AXIS</div>
               <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
                 {dvData.axisValue}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-xs text-gray-600 mb-1">ADD</div>
-              <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
-                {addFormatted}
               </div>
             </div>
           </div>
@@ -140,7 +133,6 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
           checkup.right_eye_spherical_dv,
           checkup.right_eye_cylindrical_dv,
           checkup.right_eye_axis_dv,
-          checkup.right_eye_add,
           checkup.right_eye_spherical_nv,
           checkup.right_eye_cylindrical_nv,
           checkup.right_eye_axis_nv
@@ -152,12 +144,34 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
           checkup.left_eye_spherical_dv,
           checkup.left_eye_cylindrical_dv,
           checkup.left_eye_axis_dv,
-          checkup.left_eye_add,
           checkup.left_eye_spherical_nv,
           checkup.left_eye_cylindrical_nv,
           checkup.left_eye_axis_nv
         )}
       </div>
+
+      {/* ADD Section */}
+      {(checkup.right_eye_add || checkup.left_eye_add) && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="bg-orange-50 rounded-lg p-3">
+            <h5 className="text-sm font-semibold text-orange-800 mb-3">ADD</h5>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Right Eye</div>
+                <div className="font-mono bg-white px-3 py-2 rounded border font-semibold text-orange-900">
+                  {checkup.right_eye_add || '---'}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-gray-600 mb-1">Left Eye</div>
+                <div className="font-mono bg-white px-3 py-2 rounded border font-semibold text-orange-900">
+                  {checkup.left_eye_add || '---'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {(checkup.ipd_bridge || checkup.bifocal_details) && (
         <div className="mt-4 pt-4 border-t border-gray-200">
@@ -178,8 +192,13 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="font-mono">
                 SPH: {checkup.right_eye_spherical_dv || '---'} |
                 CYL: {checkup.right_eye_cylindrical_dv || '---'} |
-                AXIS: {checkup.right_eye_axis_dv || '---'} |
-                ADD: {checkup.right_eye_add || '---'}
+                AXIS: {checkup.right_eye_axis_dv || '---'}
+              </div>
+              <div className="font-medium text-gray-700 mt-1">Right Eye N.V:</div>
+              <div className="font-mono">
+                SPH: {checkup.right_eye_spherical_nv || '---'} |
+                CYL: {checkup.right_eye_cylindrical_nv || '---'} |
+                AXIS: {checkup.right_eye_axis_nv || '---'}
               </div>
             </div>
             <div className="bg-gray-50 p-2 rounded">
@@ -187,10 +206,23 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="font-mono">
                 SPH: {checkup.left_eye_spherical_dv || '---'} |
                 CYL: {checkup.left_eye_cylindrical_dv || '---'} |
-                AXIS: {checkup.left_eye_axis_dv || '---'} |
-                ADD: {checkup.left_eye_add || '---'}
+                AXIS: {checkup.left_eye_axis_dv || '---'}
+              </div>
+              <div className="font-medium text-gray-700 mt-1">Left Eye N.V:</div>
+              <div className="font-mono">
+                SPH: {checkup.left_eye_spherical_nv || '---'} |
+                CYL: {checkup.left_eye_cylindrical_nv || '---'} |
+                AXIS: {checkup.left_eye_axis_nv || '---'}
               </div>
             </div>
+            {(checkup.right_eye_add || checkup.left_eye_add) && (
+              <div className="bg-gray-50 p-2 rounded md:col-span-2">
+                <div className="font-medium text-gray-700">ADD Values:</div>
+                <div className="font-mono">
+                  Right Eye: {checkup.right_eye_add || '---'} | Left Eye: {checkup.left_eye_add || '---'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
