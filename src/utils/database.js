@@ -14,22 +14,28 @@ const generateId = () => {
 
 const generateOrderId = async (storeId) => {
   try {
-    // Get all orders for this store and find the highest numeric ID
+    // Get all existing numeric order IDs for this store, sorted in ascending order
     const result = await client.execute({
       sql: `
         SELECT id FROM orders
         WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
-        ORDER BY CAST(id AS INTEGER) DESC
-        LIMIT 1
+        ORDER BY CAST(id AS INTEGER) ASC
       `,
       args: [storeId]
     });
 
+    // Extract the numeric IDs and sort them
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+
+    // Find the first gap in the sequence or get the next number after the highest
     let nextOrderNumber = 1;
 
-    if (result.rows.length > 0) {
-      const lastOrderId = result.rows[0].id;
-      nextOrderNumber = parseInt(lastOrderId) + 1;
+    for (let i = 0; i < existingNumbers.length; i++) {
+      if (existingNumbers[i] !== nextOrderNumber) {
+        // Found a gap, use this number
+        break;
+      }
+      nextOrderNumber++;
     }
 
     // Format as 3-digit padded string (001, 002, etc.)
