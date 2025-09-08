@@ -129,19 +129,15 @@ const CustomerDetails = ({ customer, onClose }) => {
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Optical Measurements</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Customer Notes</h3>
                   <div className="space-y-3">
-                    {customer.ipd && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">I.P.D:</span>
-                        <span className="font-medium">{customer.ipd}</span>
+                    {customer.remarks ? (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-600 text-sm">Remarks:</span>
+                        <p className="mt-1 text-gray-900">{customer.remarks}</p>
                       </div>
-                    )}
-                    {customer.bridge && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Bridge:</span>
-                        <span className="font-medium">{customer.bridge}</span>
-                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No remarks recorded</p>
                     )}
                   </div>
                 </div>

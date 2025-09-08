@@ -208,18 +208,16 @@ const Checkups = () => {
               <span className="font-medium text-gray-700">Phone:</span>
               <span className="ml-2">{selectedCustomer.phone}</span>
             </div>
-            <div>
-              <span className="font-medium text-gray-700">I.P.D:</span>
-              <span className="ml-2">{selectedCustomer.ipd || 'Not recorded'}</span>
-            </div>
             <div className="md:col-span-2">
               <span className="font-medium text-gray-700">Address:</span>
               <span className="ml-2">{selectedCustomer.address || 'Not provided'}</span>
             </div>
-            <div>
-              <span className="font-medium text-gray-700">Bridge:</span>
-              <span className="ml-2">{selectedCustomer.bridge || 'Not recorded'}</span>
-            </div>
+            {selectedCustomer.remarks && (
+              <div className="md:col-span-2">
+                <span className="font-medium text-gray-700">Remarks:</span>
+                <span className="ml-2">{selectedCustomer.remarks}</span>
+              </div>
+            )}
           </div>
         </div>
 

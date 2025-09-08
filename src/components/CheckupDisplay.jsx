@@ -18,21 +18,22 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
     return { spherical, cylindrical, axisValue };
   };
 
-  const renderEyeData = (title, sphDV, cylDV, axisDV, sphNV, cylNV, axisNV) => {
+  const renderEyeData = (title, sphDV, cylDV, axisDV, addValue, sphNV, cylNV, axisNV) => {
     const dvData = formatPrescription(sphDV, cylDV, axisDV);
     const nvData = formatPrescription(sphNV, cylNV, axisNV);
+    const addFormatted = addValue || '---';
 
     return (
       <div className="space-y-3">
         <h4 className="font-semibold text-gray-900 text-center pb-2 border-b border-gray-200">{title}</h4>
-        
+
         {/* Distance Vision */}
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="text-sm font-medium text-blue-800 mb-2 flex items-center">
             <Eye className="h-4 w-4 mr-1" />
             Distance Vision (D.V)
           </div>
-          <div className="grid grid-cols-3 gap-2 text-sm">
+          <div className="grid grid-cols-4 gap-2 text-sm">
             <div className="text-center">
               <div className="text-xs text-gray-600 mb-1">SPH</div>
               <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
@@ -49,6 +50,12 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="text-xs text-gray-600 mb-1">AXIS</div>
               <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
                 {dvData.axisValue}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-600 mb-1">ADD</div>
+              <div className="font-mono bg-white px-2 py-1 rounded border font-semibold text-blue-900">
+                {addFormatted}
               </div>
             </div>
           </div>
@@ -133,6 +140,7 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
           checkup.right_eye_spherical_dv,
           checkup.right_eye_cylindrical_dv,
           checkup.right_eye_axis_dv,
+          checkup.right_eye_add,
           checkup.right_eye_spherical_nv,
           checkup.right_eye_cylindrical_nv,
           checkup.right_eye_axis_nv
@@ -144,17 +152,18 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
           checkup.left_eye_spherical_dv,
           checkup.left_eye_cylindrical_dv,
           checkup.left_eye_axis_dv,
+          checkup.left_eye_add,
           checkup.left_eye_spherical_nv,
           checkup.left_eye_cylindrical_nv,
           checkup.left_eye_axis_nv
         )}
       </div>
 
-      {checkup.bifocal_details && (
+      {(checkup.ipd_bridge || checkup.bifocal_details) && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="bg-purple-50 rounded-lg p-3">
-            <h5 className="text-sm font-semibold text-purple-800 mb-2">Bifocal Details</h5>
-            <p className="text-sm text-purple-900">{checkup.bifocal_details}</p>
+            <h5 className="text-sm font-semibold text-purple-800 mb-2">IPD Bridge</h5>
+            <p className="text-sm text-purple-900">{checkup.ipd_bridge || checkup.bifocal_details}</p>
           </div>
         </div>
       )}
@@ -169,7 +178,8 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="font-mono">
                 SPH: {checkup.right_eye_spherical_dv || '---'} |
                 CYL: {checkup.right_eye_cylindrical_dv || '---'} |
-                AXIS: {checkup.right_eye_axis_dv || '---'}
+                AXIS: {checkup.right_eye_axis_dv || '---'} |
+                ADD: {checkup.right_eye_add || '---'}
               </div>
             </div>
             <div className="bg-gray-50 p-2 rounded">
@@ -177,7 +187,8 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
               <div className="font-mono">
                 SPH: {checkup.left_eye_spherical_dv || '---'} |
                 CYL: {checkup.left_eye_cylindrical_dv || '---'} |
-                AXIS: {checkup.left_eye_axis_dv || '---'}
+                AXIS: {checkup.left_eye_axis_dv || '---'} |
+                ADD: {checkup.left_eye_add || '---'}
               </div>
             </div>
           </div>

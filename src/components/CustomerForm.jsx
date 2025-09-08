@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, User, Phone, MapPin, Eye } from 'lucide-react';
+import { X, Save, User, Phone, MapPin, FileText } from 'lucide-react';
 import { customerService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
 
@@ -9,8 +9,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
     name: '',
     phone: '',
     address: '',
-    ipd: '',
-    bridge: ''
+    remarks: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -21,8 +20,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
         name: customer.name || '',
         phone: customer.phone || '',
         address: customer.address || '',
-        ipd: customer.ipd || '',
-        bridge: customer.bridge || ''
+        remarks: customer.remarks || ''
       });
     }
   }, [customer]);
@@ -159,35 +157,20 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
             />
           </div>
 
-          {/* IPD and Bridge */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                <Eye className="h-4 w-4 inline mr-1" />
-                I.P.D
-              </label>
-              <input
-                type="text"
-                name="ipd"
-                value={formData.ipd}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="IPD value"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Bridge
-              </label>
-              <input
-                type="text"
-                name="bridge"
-                value={formData.bridge}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Bridge value"
-              />
-            </div>
+          {/* Remarks */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <FileText className="h-4 w-4 inline mr-1" />
+              Remarks
+            </label>
+            <textarea
+              name="remarks"
+              value={formData.remarks}
+              onChange={handleChange}
+              rows={3}
+              className="input-field"
+              placeholder="Enter any additional notes or remarks about the customer"
+            />
           </div>
 
           {/* Buttons */}

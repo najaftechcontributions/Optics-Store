@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Save, User, Eye, ShoppingCart, Search, Plus,
   ChevronRight, ChevronLeft, Check, Calendar, Phone,
-  MapPin, DollarSign, Package
+  MapPin, DollarSign, Package, FileText
 } from 'lucide-react';
 import { customerService, checkupService, orderService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
@@ -25,8 +25,7 @@ const OrderWizard = ({ onClose }) => {
     name: '',
     phone: '',
     address: '',
-    ipd: '',
-    bridge: ''
+    remarks: ''
   });
 
   // Checkup form data
@@ -35,16 +34,18 @@ const OrderWizard = ({ onClose }) => {
     right_eye_spherical_dv: '',
     right_eye_cylindrical_dv: '',
     right_eye_axis_dv: '',
+    right_eye_add: '',
     right_eye_spherical_nv: '',
     right_eye_cylindrical_nv: '',
     right_eye_axis_nv: '',
     left_eye_spherical_dv: '',
     left_eye_cylindrical_dv: '',
     left_eye_axis_dv: '',
+    left_eye_add: '',
     left_eye_spherical_nv: '',
     left_eye_cylindrical_nv: '',
     left_eye_axis_nv: '',
-    bifocal_details: '',
+    ipd_bridge: '',
     tested_by: ''
   });
 
@@ -182,7 +183,7 @@ const OrderWizard = ({ onClose }) => {
           };
           setSelectedCustomer(customer);
           setShowNewCustomerForm(false);
-          setNewCustomerData({ name: '', phone: '', address: '', ipd: '', bridge: '' });
+          setNewCustomerData({ name: '', phone: '', address: '', remarks: '' });
           loadCustomers(); // Refresh customer list
         }
         
@@ -363,9 +364,9 @@ const OrderWizard = ({ onClose }) => {
               <h4 className="text-lg font-medium text-gray-900">Create New Customer</h4>
               <button
                 onClick={() => {
-                  setShowNewCustomerForm(false);
-                  setNewCustomerData({ name: '', phone: '', address: '', ipd: '', bridge: '' });
-                }}
+                setShowNewCustomerForm(false);
+                setNewCustomerData({ name: '', phone: '', address: '', remarks: '' });
+              }}
                 className="text-gray-500 hover:text-gray-700"
               >
                 <X className="h-5 w-5" />
@@ -421,34 +422,19 @@ const OrderWizard = ({ onClose }) => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <Eye className="h-4 w-4 inline mr-1" />
-                  I.P.D
-                </label>
-                <input
-                  type="text"
-                  name="ipd"
-                  value={newCustomerData.ipd}
-                  onChange={handleNewCustomerChange}
-                  className="input-field"
-                  placeholder="IPD value"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bridge
-                </label>
-                <input
-                  type="text"
-                  name="bridge"
-                  value={newCustomerData.bridge}
-                  onChange={handleNewCustomerChange}
-                  className="input-field"
-                  placeholder="Bridge value"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <FileText className="h-4 w-4 inline mr-1" />
+                Remarks
+              </label>
+              <textarea
+                name="remarks"
+                value={newCustomerData.remarks}
+                onChange={handleNewCustomerChange}
+                rows={3}
+                className="input-field"
+                placeholder="Enter any additional notes or remarks about the customer"
+              />
             </div>
           </div>
         </>
@@ -469,7 +455,7 @@ const OrderWizard = ({ onClose }) => {
           Customer: {selectedCustomer?.name}
         </h4>
         <div className="text-sm text-gray-600">
-          Phone: {selectedCustomer?.phone} | I.P.D: {selectedCustomer?.ipd || 'Not recorded'}
+          Phone: {selectedCustomer?.phone}
         </div>
       </div>
 
@@ -509,28 +495,30 @@ const OrderWizard = ({ onClose }) => {
         {/* Eye examination grid */}
         <div className="border-2 border-gray-900 rounded-lg overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-7 bg-gray-100 border-b-2 border-gray-900">
+          <div className="grid grid-cols-9 bg-gray-100 border-b-2 border-gray-900">
             <div className="p-3 border-r border-gray-900 font-bold text-center">Serial #</div>
-            <div className="col-span-3 border-r-2 border-gray-900 text-center">
+            <div className="col-span-4 border-r-2 border-gray-900 text-center">
               <div className="p-2 border-b border-gray-900 font-bold text-lg">RIGHT EYE</div>
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-4">
                 <div className="p-2 border-r border-gray-900 font-semibold">SPH</div>
                 <div className="p-2 border-r border-gray-900 font-semibold">CYL</div>
-                <div className="p-2 font-semibold">AXIS</div>
+                <div className="p-2 border-r border-gray-900 font-semibold">AXIS</div>
+                <div className="p-2 font-semibold">ADD</div>
               </div>
             </div>
-            <div className="col-span-3 text-center">
+            <div className="col-span-4 text-center">
               <div className="p-2 border-b border-gray-900 font-bold text-lg">LEFT EYE</div>
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-4">
                 <div className="p-2 border-r border-gray-900 font-semibold">SPH</div>
                 <div className="p-2 border-r border-gray-900 font-semibold">CYL</div>
-                <div className="p-2 font-semibold">AXIS</div>
+                <div className="p-2 border-r border-gray-900 font-semibold">AXIS</div>
+                <div className="p-2 font-semibold">ADD</div>
               </div>
             </div>
           </div>
 
           {/* D.V Row */}
-          <div className="grid grid-cols-7 border-b border-gray-900">
+          <div className="grid grid-cols-9 border-b border-gray-900">
             <div className="p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center">D.V</div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -552,11 +540,21 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r-2 border-gray-900">
+            <div className="p-2 border-r border-gray-900">
               <input
                 type="text"
                 name="right_eye_axis_dv"
                 value={checkupData.right_eye_axis_dv}
+                onChange={handleCheckupChange}
+                className="w-full p-1 border border-gray-300 rounded text-center"
+                placeholder="-"
+              />
+            </div>
+            <div className="p-2 border-r-2 border-gray-900">
+              <input
+                type="text"
+                name="right_eye_add"
+                value={checkupData.right_eye_add}
                 onChange={handleCheckupChange}
                 className="w-full p-1 border border-gray-300 rounded text-center"
                 placeholder="-"
@@ -582,7 +580,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2">
+            <div className="p-2 border-r border-gray-900">
               <input
                 type="text"
                 name="left_eye_axis_dv"
@@ -592,10 +590,20 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
+            <div className="p-2">
+              <input
+                type="text"
+                name="left_eye_add"
+                value={checkupData.left_eye_add}
+                onChange={handleCheckupChange}
+                className="w-full p-1 border border-gray-300 rounded text-center"
+                placeholder="-"
+              />
+            </div>
           </div>
 
           {/* N.V Row */}
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-9">
             <div className="p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center">N.V</div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -617,7 +625,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2 border-r-2 border-gray-900">
+            <div className="p-2 border-r border-gray-900">
               <input
                 type="text"
                 name="right_eye_axis_nv"
@@ -626,6 +634,9 @@ const OrderWizard = ({ onClose }) => {
                 className="w-full p-1 border border-gray-300 rounded text-center"
                 placeholder="-"
               />
+            </div>
+            <div className="p-2 border-r-2 border-gray-900">
+              <span className="text-xs text-gray-400">N/A</span>
             </div>
             <div className="p-2 border-r border-gray-900">
               <input
@@ -647,7 +658,7 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
-            <div className="p-2">
+            <div className="p-2 border-r border-gray-900">
               <input
                 type="text"
                 name="left_eye_axis_nv"
@@ -657,21 +668,24 @@ const OrderWizard = ({ onClose }) => {
                 placeholder="-"
               />
             </div>
+            <div className="p-2">
+              <span className="text-xs text-gray-400">N/A</span>
+            </div>
           </div>
         </div>
 
-        {/* Bifocal details */}
+        {/* IPD Bridge details */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Bifocal Details
+            IPD Bridge
           </label>
           <textarea
-            name="bifocal_details"
-            value={checkupData.bifocal_details}
+            name="ipd_bridge"
+            value={checkupData.ipd_bridge}
             onChange={handleCheckupChange}
             rows={3}
             className="input-field"
-            placeholder="Enter bifocal details..."
+            placeholder="Enter IPD Bridge details..."
           />
         </div>
       </div>

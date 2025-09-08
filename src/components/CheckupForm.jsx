@@ -11,6 +11,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
     right_eye_spherical_dv: checkup?.right_eye_spherical_dv || '',
     right_eye_cylindrical_dv: checkup?.right_eye_cylindrical_dv || '',
     right_eye_axis_dv: checkup?.right_eye_axis_dv || '',
+    right_eye_add: checkup?.right_eye_add || '',
     right_eye_spherical_nv: checkup?.right_eye_spherical_nv || '',
     right_eye_cylindrical_nv: checkup?.right_eye_cylindrical_nv || '',
     right_eye_axis_nv: checkup?.right_eye_axis_nv || '',
@@ -18,10 +19,11 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
     left_eye_spherical_dv: checkup?.left_eye_spherical_dv || '',
     left_eye_cylindrical_dv: checkup?.left_eye_cylindrical_dv || '',
     left_eye_axis_dv: checkup?.left_eye_axis_dv || '',
+    left_eye_add: checkup?.left_eye_add || '',
     left_eye_spherical_nv: checkup?.left_eye_spherical_nv || '',
     left_eye_cylindrical_nv: checkup?.left_eye_cylindrical_nv || '',
     left_eye_axis_nv: checkup?.left_eye_axis_nv || '',
-    bifocal_details: checkup?.bifocal_details || '',
+    ipd_bridge: checkup?.ipd_bridge || checkup?.bifocal_details || '',
     tested_by: checkup?.tested_by || ''
   });
   const [loading, setLoading] = useState(false);
@@ -111,18 +113,16 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                 <span className="font-medium text-gray-700">Phone:</span>
                 <span className="ml-2">{customer.phone}</span>
               </div>
-              <div>
-                <span className="font-medium text-gray-700">I.P.D:</span>
-                <span className="ml-2">{customer.ipd || 'Not recorded'}</span>
-              </div>
               <div className="sm:col-span-2">
                 <span className="font-medium text-gray-700">Address:</span>
                 <span className="ml-2">{customer.address || 'Not provided'}</span>
               </div>
-              <div>
-                <span className="font-medium text-gray-700">Bridge:</span>
-                <span className="ml-2">{customer.bridge || 'Not recorded'}</span>
-              </div>
+              {customer.remarks && (
+                <div className="sm:col-span-3">
+                  <span className="font-medium text-gray-700">Remarks:</span>
+                  <span className="ml-2">{customer.remarks}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -136,28 +136,30 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
             <div className="border-2 border-gray-900 rounded-lg overflow-x-auto">
               <div className="min-w-[600px]">
                 {/* Header Row */}
-                <div className="grid grid-cols-7 bg-gray-100 border-b-2 border-gray-900">
+                <div className="grid grid-cols-9 bg-gray-100 border-b-2 border-gray-900">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-bold text-center text-xs sm:text-sm">Serial #</div>
-                  <div className="col-span-3 border-r-2 border-gray-900 text-center">
+                  <div className="col-span-4 border-r-2 border-gray-900 text-center">
                     <div className="p-2 border-b border-gray-900 font-bold text-sm sm:text-lg">RIGHT EYE</div>
-                    <div className="grid grid-cols-3">
+                    <div className="grid grid-cols-4">
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">SPHERICAL</div>
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">CYLINDRICAL</div>
-                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">AXIS</div>
+                      <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">AXIS</div>
+                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">ADD</div>
                     </div>
                   </div>
-                  <div className="col-span-3 text-center">
+                  <div className="col-span-4 text-center">
                     <div className="p-2 border-b border-gray-900 font-bold text-sm sm:text-lg">LEFT EYE</div>
-                    <div className="grid grid-cols-3">
+                    <div className="grid grid-cols-4">
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">SPHERICAL</div>
                       <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">CYLINDRICAL</div>
-                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">AXIS</div>
+                      <div className="p-1 sm:p-2 border-r border-gray-900 font-semibold text-xs sm:text-sm">AXIS</div>
+                      <div className="p-1 sm:p-2 font-semibold text-xs sm:text-sm">ADD</div>
                     </div>
                   </div>
                 </div>
 
                 {/* D.V Row */}
-                <div className="grid grid-cols-7 border-b border-gray-900">
+                <div className="grid grid-cols-9 border-b border-gray-900">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center text-xs sm:text-sm">D.V</div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -179,11 +181,21 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
+                  <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
                       type="text"
                       name="right_eye_axis_dv"
                       value={formData.right_eye_axis_dv}
+                      onChange={handleChange}
+                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
+                      placeholder="-"
+                    />
+                  </div>
+                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
+                    <input
+                      type="text"
+                      name="right_eye_add"
+                      value={formData.right_eye_add}
                       onChange={handleChange}
                       className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
                       placeholder="-"
@@ -209,7 +221,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2">
+                  <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
                       type="text"
                       name="left_eye_axis_dv"
@@ -219,10 +231,20 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
+                  <div className="p-1 sm:p-2">
+                    <input
+                      type="text"
+                      name="left_eye_add"
+                      value={formData.left_eye_add}
+                      onChange={handleChange}
+                      className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
+                      placeholder="-"
+                    />
+                  </div>
                 </div>
 
                 {/* N.V Row */}
-                <div className="grid grid-cols-7">
+                <div className="grid grid-cols-9">
                   <div className="p-2 sm:p-3 border-r border-gray-900 font-semibold bg-gray-50 flex items-center text-xs sm:text-sm">N.V</div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -244,7 +266,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
+                  <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
                       type="text"
                       name="right_eye_axis_nv"
@@ -253,6 +275,9 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       className="w-full p-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
                       placeholder="-"
                     />
+                  </div>
+                  <div className="p-1 sm:p-2 border-r-2 border-gray-900">
+                    <span className="text-xs text-gray-400">N/A</span>
                   </div>
                   <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
@@ -274,7 +299,7 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
-                  <div className="p-1 sm:p-2">
+                  <div className="p-1 sm:p-2 border-r border-gray-900">
                     <input
                       type="text"
                       name="left_eye_axis_nv"
@@ -284,19 +309,22 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                       placeholder="-"
                     />
                   </div>
+                  <div className="p-1 sm:p-2">
+                    <span className="text-xs text-gray-400">N/A</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Bifocal Details */}
+              {/* IPD Bridge Details */}
               <div className="mt-4 sm:mt-6 p-3 sm:p-4 border-2 border-gray-900 rounded-lg bg-gray-50">
-                <h4 className="font-bold text-right text-sm sm:text-lg mb-3">BIFOCAL DETAILS</h4>
+                <h4 className="font-bold text-right text-sm sm:text-lg mb-3">IPD BRIDGE</h4>
                 <textarea
-                  name="bifocal_details"
-                  value={formData.bifocal_details}
+                  name="ipd_bridge"
+                  value={formData.ipd_bridge}
                   onChange={handleChange}
                   rows={3}
                   className="w-full p-2 sm:p-3 border border-gray-300 rounded text-xs sm:text-sm"
-                  placeholder="Enter bifocal details..."
+                  placeholder="Enter IPD Bridge details..."
                 />
               </div>
             </div>

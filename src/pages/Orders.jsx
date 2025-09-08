@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, ShoppingCart, Eye, Calendar, DollarSign, Edit } from 'lucide-react';
+import { Search, Plus, ShoppingCart, Eye, Calendar, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { orderService, customerService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
 import OrderForm from '../components/OrderForm';
 import OrderDetails from '../components/OrderDetails';
-import { showInfo } from '../utils/sweetAlert';
+import { showInfo, showDeleteConfirmation } from '../utils/sweetAlert';
 
 const Orders = () => {
   const { currentStore, isSuperAdmin } = useStore();
@@ -125,6 +125,32 @@ const Orders = () => {
       loadOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
+    }
+  };
+
+  const handleDeleteOrder = async (order) => {
+    if (isSuperAdmin) {
+      showInfo(
+        'Access Restricted',
+        'Super admin cannot delete orders. Please login to a specific store to delete orders.'
+      );
+      return;
+    }
+
+    const confirmed = await showDeleteConfirmation(
+      `Order #${order.id}`,
+      `Are you sure you want to delete this order for ${order.customer_name}? This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      try {
+        await orderService.delete(order.id, currentStore.id);
+        loadOrders();
+        showInfo('Success', 'Order deleted successfully', 'success');
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        showInfo('Error', 'Failed to delete order. Please try again.', 'error');
+      }
     }
   };
 
@@ -278,13 +304,22 @@ const Orders = () => {
                         <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                       </button>
                       {!isSuperAdmin && (
-                        <button
-                          onClick={() => handleEditOrder(order)}
-                          className="p-1 text-gray-400 hover:text-primary-600"
-                          title="Edit Order"
-                        >
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleEditOrder(order)}
+                            className="p-1 text-gray-400 hover:text-primary-600"
+                            title="Edit Order"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrder(order)}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                            title="Delete Order"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

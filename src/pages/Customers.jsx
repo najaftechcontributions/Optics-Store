@@ -188,9 +188,9 @@ const Customers = () => {
                         <span className="truncate">{customer.address}</span>
                       </div>
                     )}
-                    {customer.ipd && (
-                      <div className="text-xs text-gray-500">
-                        IPD: {customer.ipd} {customer.bridge && `| Bridge: ${customer.bridge}`}
+                    {customer.remarks && (
+                      <div className="text-xs text-gray-500 line-clamp-2">
+                        Remarks: {customer.remarks}
                       </div>
                     )}
                   </div>

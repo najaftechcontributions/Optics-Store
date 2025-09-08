@@ -288,20 +288,12 @@ const OrderDetails = ({ order, onClose }) => {
                     </div>
                   )}
                   
-                  {(customer.ipd || customer.bridge) && (
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      {customer.ipd && (
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">I.P.D</span>
-                          <p className="text-lg font-semibold">{customer.ipd}</p>
-                        </div>
-                      )}
-                      {customer.bridge && (
-                        <div>
-                          <span className="text-sm font-medium text-gray-700">Bridge</span>
-                          <p className="text-lg font-semibold">{customer.bridge}</p>
-                        </div>
-                      )}
+                  {customer.remarks && (
+                    <div className="mt-4">
+                      <span className="text-sm font-medium text-gray-700">Customer Remarks</span>
+                      <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-gray-900 whitespace-pre-wrap">{customer.remarks}</p>
+                      </div>
                     </div>
                   )}
                 </div>

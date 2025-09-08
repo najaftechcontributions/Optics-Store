@@ -31,6 +31,52 @@ const resetDatabase = async () => {
   }
 };
 
+const runMigrations = async () => {
+  try {
+    // Check if new columns exist and add them if they don't
+    try {
+      // Try to add the new ADD columns for right eye
+      await client.execute(`ALTER TABLE checkups ADD COLUMN right_eye_add TEXT`);
+      console.log('Added right_eye_add column to checkups table');
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
+
+    try {
+      // Try to add the new ADD columns for left eye
+      await client.execute(`ALTER TABLE checkups ADD COLUMN left_eye_add TEXT`);
+      console.log('Added left_eye_add column to checkups table');
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
+
+    try {
+      // Try to add the new ipd_bridge column
+      await client.execute(`ALTER TABLE checkups ADD COLUMN ipd_bridge TEXT`);
+      console.log('Added ipd_bridge column to checkups table');
+    } catch (error) {
+      // Column might already exist, ignore error
+    }
+
+    // Migrate existing bifocal_details data to ipd_bridge if needed
+    try {
+      await client.execute(`
+        UPDATE checkups
+        SET ipd_bridge = bifocal_details
+        WHERE ipd_bridge IS NULL AND bifocal_details IS NOT NULL
+      `);
+      console.log('Migrated existing bifocal_details to ipd_bridge');
+    } catch (error) {
+      // Migration might already be done or bifocal_details column might not exist
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error running migrations:', error);
+    return false;
+  }
+};
+
 const initDatabase = async () => {
   try {
     if (!initialized) {
@@ -58,8 +104,7 @@ const initDatabase = async () => {
           email TEXT,
           address TEXT,
           date_of_birth TEXT,
-          ipd TEXT,
-          bridge TEXT,
+          remarks TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (store_id) REFERENCES stores (id),
@@ -77,16 +122,18 @@ const initDatabase = async () => {
           right_eye_spherical_dv TEXT,
           right_eye_cylindrical_dv TEXT,
           right_eye_axis_dv TEXT,
+          right_eye_add TEXT,
           right_eye_spherical_nv TEXT,
           right_eye_cylindrical_nv TEXT,
           right_eye_axis_nv TEXT,
           left_eye_spherical_dv TEXT,
           left_eye_cylindrical_dv TEXT,
           left_eye_axis_dv TEXT,
+          left_eye_add TEXT,
           left_eye_spherical_nv TEXT,
           left_eye_cylindrical_nv TEXT,
           left_eye_axis_nv TEXT,
-          bifocal_details TEXT,
+          ipd_bridge TEXT,
           tested_by TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (store_id) REFERENCES stores (id),
@@ -123,8 +170,11 @@ const initDatabase = async () => {
       await client.execute('CREATE INDEX IF NOT EXISTS idx_checkups_store_id ON checkups(store_id)');
       await client.execute('CREATE INDEX IF NOT EXISTS idx_orders_store_id ON orders(store_id)');
 
+      // Run migrations for existing databases
+      await runMigrations();
+
       initialized = true;
-      console.log('Database initialized successfully');
+      console.log('Database initialized successfully with all migrations');
     }
     return true;
   } catch (error) {
@@ -136,6 +186,9 @@ const initDatabase = async () => {
 const getDatabase = async () => {
   if (!initialized) {
     await initDatabase();
+  } else {
+    // Run migrations for already initialized databases
+    await runMigrations();
   }
   return client;
 };
@@ -216,8 +269,8 @@ const customerService = {
   create: async (customer, storeId) => {
     const id = generateId();
     const result = await client.execute({
-      sql: `INSERT INTO customers (id, store_id, name, phone, email, address, date_of_birth, ipd, bridge)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT INTO customers (id, store_id, name, phone, email, address, date_of_birth, remarks)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         storeId,
@@ -226,8 +279,7 @@ const customerService = {
         customer.email || null,
         customer.address || null,
         customer.date_of_birth || null,
-        customer.ipd || null,
-        customer.bridge || null
+        customer.remarks || null
       ]
     });
     return { lastInsertRowid: id };
@@ -268,7 +320,7 @@ const customerService = {
   update: async (id, customer, storeId) => {
     const result = await client.execute({
       sql: `UPDATE customers
-            SET name = ?, phone = ?, email = ?, address = ?, date_of_birth = ?, ipd = ?, bridge = ?, updated_at = CURRENT_TIMESTAMP
+            SET name = ?, phone = ?, email = ?, address = ?, date_of_birth = ?, remarks = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND store_id = ?`,
       args: [
         customer.name || '',
@@ -276,8 +328,7 @@ const customerService = {
         customer.email || null,
         customer.address || null,
         customer.date_of_birth || null,
-        customer.ipd || null,
-        customer.bridge || null,
+        customer.remarks || null,
         id,
         storeId
       ]
@@ -292,11 +343,11 @@ const checkupService = {
     const id = generateId();
     const result = await client.execute({
       sql: `INSERT INTO checkups (id, store_id, customer_id, date, right_eye_spherical_dv, right_eye_cylindrical_dv,
-                                  right_eye_axis_dv, right_eye_spherical_nv, right_eye_cylindrical_nv,
+                                  right_eye_axis_dv, right_eye_add, right_eye_spherical_nv, right_eye_cylindrical_nv,
                                   right_eye_axis_nv, left_eye_spherical_dv, left_eye_cylindrical_dv,
-                                  left_eye_axis_dv, left_eye_spherical_nv, left_eye_cylindrical_nv,
-                                  left_eye_axis_nv, bifocal_details, tested_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                  left_eye_axis_dv, left_eye_add, left_eye_spherical_nv, left_eye_cylindrical_nv,
+                                  left_eye_axis_nv, ipd_bridge, tested_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         id,
         storeId,
@@ -305,16 +356,18 @@ const checkupService = {
         checkup.right_eye_spherical_dv && checkup.right_eye_spherical_dv.trim() !== '' ? checkup.right_eye_spherical_dv : null,
         checkup.right_eye_cylindrical_dv && checkup.right_eye_cylindrical_dv.trim() !== '' ? checkup.right_eye_cylindrical_dv : null,
         checkup.right_eye_axis_dv && checkup.right_eye_axis_dv.trim() !== '' ? checkup.right_eye_axis_dv : null,
+        checkup.right_eye_add && checkup.right_eye_add.trim() !== '' ? checkup.right_eye_add : null,
         checkup.right_eye_spherical_nv && checkup.right_eye_spherical_nv.trim() !== '' ? checkup.right_eye_spherical_nv : null,
         checkup.right_eye_cylindrical_nv && checkup.right_eye_cylindrical_nv.trim() !== '' ? checkup.right_eye_cylindrical_nv : null,
         checkup.right_eye_axis_nv && checkup.right_eye_axis_nv.trim() !== '' ? checkup.right_eye_axis_nv : null,
         checkup.left_eye_spherical_dv && checkup.left_eye_spherical_dv.trim() !== '' ? checkup.left_eye_spherical_dv : null,
         checkup.left_eye_cylindrical_dv && checkup.left_eye_cylindrical_dv.trim() !== '' ? checkup.left_eye_cylindrical_dv : null,
         checkup.left_eye_axis_dv && checkup.left_eye_axis_dv.trim() !== '' ? checkup.left_eye_axis_dv : null,
+        checkup.left_eye_add && checkup.left_eye_add.trim() !== '' ? checkup.left_eye_add : null,
         checkup.left_eye_spherical_nv && checkup.left_eye_spherical_nv.trim() !== '' ? checkup.left_eye_spherical_nv : null,
         checkup.left_eye_cylindrical_nv && checkup.left_eye_cylindrical_nv.trim() !== '' ? checkup.left_eye_cylindrical_nv : null,
         checkup.left_eye_axis_nv && checkup.left_eye_axis_nv.trim() !== '' ? checkup.left_eye_axis_nv : null,
-        checkup.bifocal_details && checkup.bifocal_details.trim() !== '' ? checkup.bifocal_details : null,
+        checkup.ipd_bridge && checkup.ipd_bridge.trim() !== '' ? checkup.ipd_bridge : null,
         checkup.tested_by && checkup.tested_by.trim() !== '' ? checkup.tested_by : null
       ]
     });
@@ -341,26 +394,28 @@ const checkupService = {
     const result = await client.execute({
       sql: `UPDATE checkups
             SET date = ?, right_eye_spherical_dv = ?, right_eye_cylindrical_dv = ?,
-                right_eye_axis_dv = ?, right_eye_spherical_nv = ?, right_eye_cylindrical_nv = ?,
+                right_eye_axis_dv = ?, right_eye_add = ?, right_eye_spherical_nv = ?, right_eye_cylindrical_nv = ?,
                 right_eye_axis_nv = ?, left_eye_spherical_dv = ?, left_eye_cylindrical_dv = ?,
-                left_eye_axis_dv = ?, left_eye_spherical_nv = ?, left_eye_cylindrical_nv = ?,
-                left_eye_axis_nv = ?, bifocal_details = ?, tested_by = ?
+                left_eye_axis_dv = ?, left_eye_add = ?, left_eye_spherical_nv = ?, left_eye_cylindrical_nv = ?,
+                left_eye_axis_nv = ?, ipd_bridge = ?, tested_by = ?
             WHERE id = ? AND store_id = ?`,
       args: [
         checkup.date || new Date().toISOString().split('T')[0],
         checkup.right_eye_spherical_dv && checkup.right_eye_spherical_dv.trim() !== '' ? checkup.right_eye_spherical_dv : null,
         checkup.right_eye_cylindrical_dv && checkup.right_eye_cylindrical_dv.trim() !== '' ? checkup.right_eye_cylindrical_dv : null,
         checkup.right_eye_axis_dv && checkup.right_eye_axis_dv.trim() !== '' ? checkup.right_eye_axis_dv : null,
+        checkup.right_eye_add && checkup.right_eye_add.trim() !== '' ? checkup.right_eye_add : null,
         checkup.right_eye_spherical_nv && checkup.right_eye_spherical_nv.trim() !== '' ? checkup.right_eye_spherical_nv : null,
         checkup.right_eye_cylindrical_nv && checkup.right_eye_cylindrical_nv.trim() !== '' ? checkup.right_eye_cylindrical_nv : null,
         checkup.right_eye_axis_nv && checkup.right_eye_axis_nv.trim() !== '' ? checkup.right_eye_axis_nv : null,
         checkup.left_eye_spherical_dv && checkup.left_eye_spherical_dv.trim() !== '' ? checkup.left_eye_spherical_dv : null,
         checkup.left_eye_cylindrical_dv && checkup.left_eye_cylindrical_dv.trim() !== '' ? checkup.left_eye_cylindrical_dv : null,
         checkup.left_eye_axis_dv && checkup.left_eye_axis_dv.trim() !== '' ? checkup.left_eye_axis_dv : null,
+        checkup.left_eye_add && checkup.left_eye_add.trim() !== '' ? checkup.left_eye_add : null,
         checkup.left_eye_spherical_nv && checkup.left_eye_spherical_nv.trim() !== '' ? checkup.left_eye_spherical_nv : null,
         checkup.left_eye_cylindrical_nv && checkup.left_eye_cylindrical_nv.trim() !== '' ? checkup.left_eye_cylindrical_nv : null,
         checkup.left_eye_axis_nv && checkup.left_eye_axis_nv.trim() !== '' ? checkup.left_eye_axis_nv : null,
-        checkup.bifocal_details && checkup.bifocal_details.trim() !== '' ? checkup.bifocal_details : null,
+        checkup.ipd_bridge && checkup.ipd_bridge.trim() !== '' ? checkup.ipd_bridge : null,
         checkup.tested_by && checkup.tested_by.trim() !== '' ? checkup.tested_by : null,
         id,
         storeId
@@ -524,6 +579,14 @@ const orderService = {
     const result = await client.execute({
       sql: 'UPDATE orders SET status = ? WHERE id = ? AND store_id = ?',
       args: [status, id, storeId]
+    });
+    return { changes: result.rowsAffected };
+  },
+
+  delete: async (id, storeId) => {
+    const result = await client.execute({
+      sql: 'DELETE FROM orders WHERE id = ? AND store_id = ?',
+      args: [id, storeId]
     });
     return { changes: result.rowsAffected };
   }
