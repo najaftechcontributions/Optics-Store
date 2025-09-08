@@ -12,6 +12,35 @@ const generateId = () => {
   return Date.now() + Math.random().toString(36).substr(2, 9);
 };
 
+const generateOrderId = async (storeId) => {
+  try {
+    // Get all orders for this store and find the highest numeric ID
+    const result = await client.execute({
+      sql: `
+        SELECT id FROM orders
+        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        ORDER BY CAST(id AS INTEGER) DESC
+        LIMIT 1
+      `,
+      args: [storeId]
+    });
+
+    let nextOrderNumber = 1;
+
+    if (result.rows.length > 0) {
+      const lastOrderId = result.rows[0].id;
+      nextOrderNumber = parseInt(lastOrderId) + 1;
+    }
+
+    // Format as 3-digit padded string (001, 002, etc.)
+    return nextOrderNumber.toString().padStart(3, '0');
+  } catch (error) {
+    console.error('Error generating order ID:', error);
+    // Fallback to sequential numbering starting from 001
+    return '001';
+  }
+};
+
 const resetDatabase = async () => {
   try {
     // Drop existing tables
@@ -447,7 +476,7 @@ const checkupService = {
 // Order operations
 const orderService = {
   create: async (order, storeId) => {
-    const id = generateId();
+    const id = await generateOrderId(storeId);
     const result = await client.execute({
       sql: `INSERT INTO orders (id, store_id, customer_id, checkup_id, order_date, expected_delivery_date, delivered_date, frame,
                                lenses, total_amount, advance_amount, balance_amount, status, notes)

@@ -110,7 +110,7 @@ const StoreLogin = () => {
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-4">
             <Eye className="h-10 w-10 sm:h-12 sm:w-12 text-primary-600" />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{import.meta.env.VITE_STORE_NAME || 'Kashmir Optical'}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{import.meta.env.VITE_STORE_NAME || 'Kashmir Optical Center'}</h1>
               <p className="text-primary-600 text-sm sm:text-base">Management System</p>
             </div>
           </div>
