@@ -3,9 +3,10 @@
 
 class SuperAdminService {
   constructor() {
-    // Super admin credentials (in production, these should be environment variables)
-    this.SUPER_ADMIN_USERNAME = 'superadmin';
-    this.SUPER_ADMIN_PASSWORD = 'optical@admin2024';
+    // Super admin credentials from environment variables
+    // Note: In a production environment, consider server-side authentication instead
+    this.SUPER_ADMIN_USERNAME = import.meta.env.VITE_SUPER_ADMIN_USERNAME || 'superadmin';
+    this.SUPER_ADMIN_PASSWORD = import.meta.env.VITE_SUPER_ADMIN_PASSWORD || 'optical@admin2024';
     this.sessionTimeout = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
   }
 

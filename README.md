@@ -45,7 +45,14 @@ Before you begin, ensure you have the following installed:
    npm install
    ```
 
-3. **Initialize the database (first time setup)**
+3. **Setup environment variables**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   ```
+   Edit `.env` to set your super admin credentials if needed.
+
+4. **Initialize the database (first time setup)**
    ```bash
    node reset-db.js
    ```
@@ -84,11 +91,11 @@ The application supports two types of authentication:
 5. Save changes
 
 #### Changing Super Admin Credentials:
-1. Edit `src/services/superAdminService.js`
-2. Modify the following lines:
-   ```javascript
-   this.SUPER_ADMIN_USERNAME = 'your-new-username';
-   this.SUPER_ADMIN_PASSWORD = 'your-new-password';
+1. Copy `.env.example` to `.env` (if not already done)
+2. Edit the `.env` file and set your credentials:
+   ```env
+   VITE_SUPER_ADMIN_USERNAME=your-new-username
+   VITE_SUPER_ADMIN_PASSWORD=your-new-password
    ```
 3. Restart the application
 
