@@ -4,6 +4,7 @@ import { storeService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
 import { formatDate } from '../utils/dateUtils';
 import SuperAdminLogin from '../components/SuperAdminLogin';
+import BackupManager from '../components/BackupManager';
 import { showDeleteConfirmation } from '../utils/sweetAlert';
 
 const Settings = () => {
@@ -584,6 +585,11 @@ const Settings = () => {
           </div>
         </div>
       )}
+
+      {/* Database Backup Section */}
+      <div className="mt-8">
+        <BackupManager />
+      </div>
 
       {/* Super Admin Login Modal */}
       <SuperAdminLogin
