@@ -6,7 +6,9 @@ import {
 } from 'lucide-react';
 import { customerService, checkupService, orderService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { getCurrentDateForInput, getCurrentTimestamp, formatDate } from '../utils/dateUtils';
 import CheckupDisplay from './CheckupDisplay';
+import DatePicker from './DatePicker';
 
 const OrderWizard = ({ onClose }) => {
   const { currentStore } = useStore();
@@ -30,7 +32,7 @@ const OrderWizard = ({ onClose }) => {
 
   // Checkup form data
   const [checkupData, setCheckupData] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: getCurrentDateForInput(),
     right_eye_spherical_dv: '',
     right_eye_cylindrical_dv: '',
     right_eye_axis_dv: '',
@@ -51,7 +53,7 @@ const OrderWizard = ({ onClose }) => {
 
   // Order form data
   const [orderData, setOrderData] = useState({
-    order_date: new Date().toISOString().split('T')[0],
+    order_date: getCurrentDateForInput(),
     expected_delivery_date: '',
     delivered_date: '',
     frame: '',
@@ -178,8 +180,8 @@ const OrderWizard = ({ onClose }) => {
             ...newCustomerData,
             id: result.lastInsertRowid,
             store_id: currentStore.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: getCurrentTimestamp(),
+            updated_at: getCurrentTimestamp()
           };
           setSelectedCustomer(customer);
           setShowNewCustomerForm(false);
@@ -198,11 +200,11 @@ const OrderWizard = ({ onClose }) => {
           customer_id: selectedCustomer.id
         }, currentStore.id);
         
-        const newCheckup = { 
-          ...checkupData, 
+        const newCheckup = {
+          ...checkupData,
           id: checkupResult.lastInsertRowid,
           customer_id: selectedCustomer.id,
-          created_at: new Date().toISOString()
+          created_at: getCurrentTimestamp()
         };
         setCompletedCheckup(newCheckup);
         setCurrentStep(3);
@@ -468,12 +470,13 @@ const OrderWizard = ({ onClose }) => {
               <Calendar className="h-4 w-4 inline mr-1" />
               Examination Date *
             </label>
-            <input
-              type="date"
+            <DatePicker
               name="date"
               value={checkupData.date}
               onChange={handleCheckupChange}
-              className={`input-field ${errors.checkup_date ? 'border-red-300' : ''}`}
+              className={errors.checkup_date ? 'border-red-300' : ''}
+              placeholder="dd/mm/yyyy"
+              required
             />
             {errors.checkup_date && <p className="text-red-500 text-sm mt-1">{errors.checkup_date}</p>}
           </div>
@@ -712,7 +715,7 @@ const OrderWizard = ({ onClose }) => {
               Eye Examination Completed
             </h4>
             <div className="text-sm text-green-800">
-              Date: {new Date(completedCheckup.date).toLocaleDateString()}
+              Date: {formatDate(completedCheckup.date)}
               {completedCheckup.tested_by && ` | Tested by: ${completedCheckup.tested_by}`}
             </div>
           </div>
@@ -727,12 +730,12 @@ const OrderWizard = ({ onClose }) => {
               <Calendar className="h-4 w-4 inline mr-1" />
               Order Date *
             </label>
-            <input
-              type="date"
+            <DatePicker
               name="order_date"
               value={orderData.order_date}
               onChange={handleOrderChange}
-              className="input-field"
+              placeholder="dd/mm/yyyy"
+              required
             />
           </div>
           <div>
@@ -740,12 +743,11 @@ const OrderWizard = ({ onClose }) => {
               <Calendar className="h-4 w-4 inline mr-1" />
               Expected Delivery Date
             </label>
-            <input
-              type="date"
+            <DatePicker
               name="expected_delivery_date"
               value={orderData.expected_delivery_date}
               onChange={handleOrderChange}
-              className="input-field"
+              placeholder="dd/mm/yyyy"
             />
           </div>
           <div>
@@ -753,12 +755,11 @@ const OrderWizard = ({ onClose }) => {
               <Calendar className="h-4 w-4 inline mr-1" />
               Delivered Date
             </label>
-            <input
-              type="date"
+            <DatePicker
               name="delivered_date"
               value={orderData.delivered_date}
               onChange={handleOrderChange}
-              className="input-field"
+              placeholder="dd/mm/yyyy"
               disabled={orderData.status !== 'delivered'}
             />
             {orderData.status !== 'delivered' && (

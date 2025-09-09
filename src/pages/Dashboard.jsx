@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Eye, ShoppingCart, DollarSign, Calendar, TrendingUp, Zap, ExternalLink } from 'lucide-react';
 import { customerService, orderService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
+import { getTodayFormatted, getWeekStart, getWeekEnd, getMonthStart, getMonthEnd, formatDateWithShortMonth } from '../utils/dateUtils';
 import OrderWizard from '../components/OrderWizard';
 import OrderDetails from '../components/OrderDetails';
 
@@ -36,21 +36,21 @@ const Dashboard = () => {
       // Get orders data
       const orders = await orderService.getAll(currentStore.id);
       const today = new Date();
-      const todayStr = format(today, 'yyyy-MM-dd');
+      const todayStr = getTodayFormatted();
 
       // Calculate stats
       const todayOrders = orders.filter(order =>
         order.order_date.startsWith(todayStr)
       ).length;
 
-      const weekStart = format(startOfWeek(today), 'yyyy-MM-dd');
-      const weekEnd = format(endOfWeek(today), 'yyyy-MM-dd');
+      const weekStart = getWeekStart(today);
+      const weekEnd = getWeekEnd(today);
       const weeklyRevenue = orders
         .filter(order => order.order_date >= weekStart && order.order_date <= weekEnd)
         .reduce((sum, order) => sum + (order.total_amount || 0), 0);
 
-      const monthStart = format(startOfMonth(today), 'yyyy-MM-dd');
-      const monthEnd = format(endOfMonth(today), 'yyyy-MM-dd');
+      const monthStart = getMonthStart(today);
+      const monthEnd = getMonthEnd(today);
       const monthlyRevenue = orders
         .filter(order => order.order_date >= monthStart && order.order_date <= monthEnd)
         .reduce((sum, order) => sum + (order.total_amount || 0), 0);
@@ -91,13 +91,6 @@ const Dashboard = () => {
     return `Rs. ${amount?.toFixed(2) || '0.00'}`;
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const statCards = [
     {
@@ -195,7 +188,7 @@ const Dashboard = () => {
                       <p className="font-medium text-gray-900 group-hover:text-primary-600">{order.customer_name}</p>
                       <ExternalLink className="h-3 w-3 text-gray-400 group-hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
-                    <p className="text-sm text-gray-600">{formatDate(order.order_date)}</p>
+                    <p className="text-sm text-gray-600">{formatDateWithShortMonth(order.order_date)}</p>
                     {order.checkup_id && (
                       <div className="flex items-center space-x-1 mt-1">
                         <Eye className="h-3 w-3 text-green-600" />

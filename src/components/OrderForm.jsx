@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, ShoppingCart, Search, User, Calendar, DollarSign, Eye } from 'lucide-react';
 import { orderService, customerService, checkupService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { getCurrentDateForInput, formatDateWithShortMonth } from '../utils/dateUtils';
+import DatePicker from './DatePicker';
 
 const OrderForm = ({ order, onClose }) => {
   const { currentStore } = useStore();
   const [formData, setFormData] = useState({
     customer_id: '',
     checkup_id: '',
-    order_date: new Date().toISOString().split('T')[0],
+    order_date: getCurrentDateForInput(),
     expected_delivery_date: '',
     delivered_date: '',
     frame: '',
@@ -37,7 +39,7 @@ const OrderForm = ({ order, onClose }) => {
       setFormData({
         customer_id: order.customer_id || '',
         checkup_id: order.checkup_id || '',
-        order_date: order.order_date || new Date().toISOString().split('T')[0],
+        order_date: order.order_date || getCurrentDateForInput(),
         expected_delivery_date: order.expected_delivery_date || '',
         delivered_date: order.delivered_date || '',
         frame: order.frame || '',
@@ -196,13 +198,7 @@ const OrderForm = ({ order, onClose }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 no_margin_top">
@@ -307,7 +303,7 @@ const OrderForm = ({ order, onClose }) => {
                   <option value="">No checkup linked</option>
                   {checkups.map((checkup) => (
                     <option key={checkup.id} value={checkup.id}>
-                      {selectedCustomer.name} - {formatDate(checkup.date)}
+                      {selectedCustomer.name} - {formatDateWithShortMonth(checkup.date)}
                     </option>
                   ))}
                 </select>
@@ -325,12 +321,13 @@ const OrderForm = ({ order, onClose }) => {
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Order Date *
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   name="order_date"
                   value={formData.order_date}
                   onChange={handleChange}
-                  className={`input-field ${errors.order_date ? 'border-red-300 focus:ring-red-500' : ''}`}
+                  className={errors.order_date ? 'border-red-300 focus:ring-red-500' : ''}
+                  placeholder="dd/mm/yyyy"
+                  required
                 />
                 {errors.order_date && <p className="text-red-500 text-sm mt-1">{errors.order_date}</p>}
               </div>
@@ -340,12 +337,11 @@ const OrderForm = ({ order, onClose }) => {
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Expected Delivery Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   name="expected_delivery_date"
                   value={formData.expected_delivery_date}
                   onChange={handleChange}
-                  className="input-field"
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
 
@@ -354,12 +350,11 @@ const OrderForm = ({ order, onClose }) => {
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Delivered Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   name="delivered_date"
                   value={formData.delivered_date}
                   onChange={handleChange}
-                  className="input-field"
+                  placeholder="dd/mm/yyyy"
                   disabled={formData.status !== 'delivered'}
                 />
                 {formData.status !== 'delivered' && (

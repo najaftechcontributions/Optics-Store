@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Store, Save, X, Eye, EyeOff, AlertCircle, CheckCircle, Shield, Lock } from 'lucide-react';
 import { storeService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { formatDate } from '../utils/dateUtils';
 import SuperAdminLogin from '../components/SuperAdminLogin';
 import { showDeleteConfirmation } from '../utils/sweetAlert';
 
@@ -396,7 +397,7 @@ const Settings = () => {
 
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-xs text-gray-500">
-                Created {new Date(store.created_at).toLocaleDateString()}
+                Created {formatDate(store.created_at)}
               </p>
             </div>
           </div>

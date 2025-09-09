@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, Lock, Store, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import authService from '../services/authService';
 import { useStore } from '../contexts/StoreContext';
+import { formatDate } from '../utils/dateUtils';
 import SuperAdminLogin from './SuperAdminLogin';
 
 const StoreLogin = () => {
@@ -110,7 +111,7 @@ const StoreLogin = () => {
           <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-4">
             <Eye className="h-10 w-10 sm:h-12 sm:w-12 text-primary-600" />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{import.meta.env.VITE_STORE_NAME || 'Kashmir Optical Center'}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{import.meta.env.VITE_STORE_NAME || 'Kashmir Optical'}</h1>
               <p className="text-primary-600 text-sm sm:text-base">Management System</p>
             </div>
           </div>
@@ -178,7 +179,7 @@ const StoreLogin = () => {
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500">
-                        Created {new Date(store.created_at).toLocaleDateString()}
+                        Created {formatDate(store.created_at)}
                       </span>
                       <div className="flex items-center space-x-1 text-primary-600">
                         <Shield className="h-4 w-4" />

@@ -1,4 +1,5 @@
 import { createClient } from '@libsql/client';
+import { getCurrentDateForInput, getCurrentTimestamp } from './dateUtils';
 
 // Turso client setup
 const client = createClient({
@@ -387,7 +388,7 @@ const checkupService = {
         id,
         storeId,
         checkup.customer_id,
-        checkup.date || new Date().toISOString().split('T')[0],
+        checkup.date || getCurrentDateForInput(),
         checkup.right_eye_spherical_dv && checkup.right_eye_spherical_dv.trim() !== '' ? checkup.right_eye_spherical_dv : null,
         checkup.right_eye_cylindrical_dv && checkup.right_eye_cylindrical_dv.trim() !== '' ? checkup.right_eye_cylindrical_dv : null,
         checkup.right_eye_axis_dv && checkup.right_eye_axis_dv.trim() !== '' ? checkup.right_eye_axis_dv : null,
@@ -435,7 +436,7 @@ const checkupService = {
                 left_eye_axis_nv = ?, ipd_bridge = ?, tested_by = ?
             WHERE id = ? AND store_id = ?`,
       args: [
-        checkup.date || new Date().toISOString().split('T')[0],
+        checkup.date || getCurrentDateForInput(),
         checkup.right_eye_spherical_dv && checkup.right_eye_spherical_dv.trim() !== '' ? checkup.right_eye_spherical_dv : null,
         checkup.right_eye_cylindrical_dv && checkup.right_eye_cylindrical_dv.trim() !== '' ? checkup.right_eye_cylindrical_dv : null,
         checkup.right_eye_axis_dv && checkup.right_eye_axis_dv.trim() !== '' ? checkup.right_eye_axis_dv : null,
@@ -492,7 +493,7 @@ const orderService = {
         storeId,
         order.customer_id,
         order.checkup_id || null,
-        order.order_date || new Date().toISOString().split('T')[0],
+        order.order_date || getCurrentDateForInput(),
         order.expected_delivery_date || null,
         order.delivered_date || null,
         order.frame || null,
@@ -604,7 +605,7 @@ const orderService = {
       args: [
         order.customer_id,
         order.checkup_id || null,
-        order.order_date || new Date().toISOString().split('T')[0],
+        order.order_date || getCurrentDateForInput(),
         order.expected_delivery_date || null,
         order.delivered_date || null,
         order.frame || null,

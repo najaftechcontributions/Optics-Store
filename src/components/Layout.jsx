@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Eye, Users, FileText, ShoppingCart, BarChart3, Menu, Settings, LogOut, Store, Shield, ChevronDown } from 'lucide-react';
 import { useStore } from '../contexts/StoreContext';
+import { formatDateWithWeekday } from '../utils/dateUtils';
 import { showLogoutConfirmation } from '../utils/sweetAlert';
 
 const Layout = ({ children }) => {
@@ -189,7 +190,7 @@ const Layout = ({ children }) => {
       )}
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-0">
+      <div className="flex-1 lg:ml-0 w-full">
         {/* Top bar */}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4">
@@ -225,12 +226,7 @@ const Layout = ({ children }) => {
 
               {/* Date */}
               <div className="text-xs sm:text-sm text-gray-500 hidden md:block">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                {formatDateWithWeekday(new Date())}
               </div>
             </div>
           </div>

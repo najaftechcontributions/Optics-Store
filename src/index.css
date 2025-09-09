@@ -33,8 +33,48 @@
   margin-top: 0 !important;
 }
 
+/* Mobile-specific flatpickr styling */
+.flatpickr-calendar {
+  font-size: 14px;
+}
+
 @media screen and (max-width:575px) {
   .card {
     padding: 10px;
+  }
+
+  /* Mobile flatpickr improvements */
+  .flatpickr-calendar {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    max-width: 90vw;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .flatpickr-calendar.open {
+    display: block !important;
+  }
+
+  /* Larger touch targets on mobile */
+  .flatpickr-day {
+    height: 40px !important;
+    line-height: 40px !important;
+    font-size: 16px !important;
+  }
+
+  .flatpickr-months .flatpickr-month {
+    height: 50px !important;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-size: 16px !important;
+  }
+
+  /* Prevent input zoom on iOS */
+  .flatpickr-input {
+    font-size: 16px !important;
   }
 }

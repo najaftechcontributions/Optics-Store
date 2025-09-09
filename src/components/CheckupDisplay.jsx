@@ -1,14 +1,8 @@
 import React from 'react';
 import { Eye, Calendar, User as UserIcon, Edit, Trash2 } from 'lucide-react';
+import { formatDateWithShortMonth } from '../utils/dateUtils';
 
 const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, onDelete, showActions = false }) => {
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   const formatPrescription = (sph, cyl, axis) => {
     const spherical = sph || '---';
@@ -90,7 +84,7 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-gray-200">
           <div className="flex items-center space-x-2 min-w-0">
             <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
-            <span className="font-semibold text-gray-900 text-sm sm:text-base">{formatDate(checkup.date)}</span>
+            <span className="font-semibold text-gray-900 text-sm sm:text-base">{formatDateWithShortMonth(checkup.date)}</span>
             {checkup.tested_by && (
               <>
                 <span className="text-gray-400 hidden sm:inline">•</span>
@@ -101,7 +95,7 @@ const CheckupDisplay = ({ checkup, showHeader = true, compact = false, onEdit, o
           <div className="flex items-center justify-between sm:justify-end space-x-2">
             {checkup.created_at && (
               <div className="text-xs text-gray-500">
-                Recorded: {formatDate(checkup.created_at)}
+                Recorded: {formatDateWithShortMonth(checkup.created_at)}
               </div>
             )}
             {showActions && (

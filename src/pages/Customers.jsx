@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Eye, Phone, MapPin, Users } from 'lucide-react';
 import { customerService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { formatDate } from '../utils/dateUtils';
 import CustomerForm from '../components/CustomerForm';
 import CustomerDetails from '../components/CustomerDetails';
 import { showInfo } from '../utils/sweetAlert';
@@ -196,7 +197,7 @@ const Customers = () => {
                   </div>
 
                   <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                    Added: {new Date(customer.created_at).toLocaleDateString()}
+                    Added: {formatDate(customer.created_at)}
                   </div>
                 </div>
               ))}

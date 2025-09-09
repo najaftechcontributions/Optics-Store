@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, ShoppingCart, Eye, Calendar, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { orderService, customerService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { getCurrentDateForInput, formatDateWithShortMonth } from '../utils/dateUtils';
 import OrderForm from '../components/OrderForm';
 import OrderDetails from '../components/OrderDetails';
 import { showInfo, showDeleteConfirmation } from '../utils/sweetAlert';
@@ -113,7 +114,7 @@ const Orders = () => {
 
       // Auto-set delivered date when status changes to delivered
       if (newStatus === 'delivered' && !orderToUpdate.delivered_date) {
-        updateData.delivered_date = new Date().toISOString().split('T')[0];
+        updateData.delivered_date = getCurrentDateForInput();
       }
 
       // Clear delivered date if status changes away from delivered
@@ -154,13 +155,7 @@ const Orders = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   const formatCurrency = (amount) => {
     return `Rs. ${amount?.toFixed(2) || '0.00'}`;
@@ -265,18 +260,18 @@ const Orders = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 text-xs sm:text-sm text-gray-500 space-y-1 sm:space-y-0">
                           <span className="flex items-center space-x-1">
                             <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>Ordered: {formatDate(order.order_date)}</span>
+                            <span>Ordered: {formatDateWithShortMonth(order.order_date)}</span>
                           </span>
                           {order.expected_delivery_date && (
                             <span className="flex items-center space-x-1">
                               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                              <span>Expected: {formatDate(order.expected_delivery_date)}</span>
+                              <span>Expected: {formatDateWithShortMonth(order.expected_delivery_date)}</span>
                             </span>
                           )}
                           {order.delivered_date && order.status === 'delivered' && (
                             <span className="flex items-center space-x-1">
                               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                              <span>Delivered: {formatDate(order.delivered_date)}</span>
+                              <span>Delivered: {formatDateWithShortMonth(order.delivered_date)}</span>
                             </span>
                           )}
                         </div>
@@ -366,10 +361,10 @@ const Orders = () => {
                       </div>
                       <div className="mt-2 text-xs text-gray-600 space-y-1">
                         {order.expected_delivery_date && (
-                          <div>Expected: {formatDate(order.expected_delivery_date)}</div>
+                          <div>Expected: {formatDateWithShortMonth(order.expected_delivery_date)}</div>
                         )}
                         {order.delivered_date && order.status === 'delivered' && (
-                          <div className="text-green-600">Delivered: {formatDate(order.delivered_date)}</div>
+                          <div className="text-green-600">Delivered: {formatDateWithShortMonth(order.delivered_date)}</div>
                         )}
                         {order.expected_delivery_date && order.delivered_date && order.status === 'delivered' && (
                           <div className={`font-medium ${

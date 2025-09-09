@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ShoppingCart, User, Calendar, DollarSign, Eye, Phone, MapPin } from 'lucide-react';
 import { customerService, checkupService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { formatDateWithLongMonth, isOnOrBefore } from '../utils/dateUtils';
 import CheckupDisplay from './CheckupDisplay';
 
 const OrderDetails = ({ order, onClose }) => {
@@ -50,13 +51,7 @@ const OrderDetails = ({ order, onClose }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+
 
   const formatCurrency = (amount) => {
     return `Rs. ${amount?.toFixed(2) || '0.00'}`;
@@ -115,7 +110,7 @@ const OrderDetails = ({ order, onClose }) => {
                   <Calendar className="h-4 w-4 text-gray-500" />
                   <span className="text-sm font-medium text-gray-700">Order Date</span>
                 </div>
-                <p className="text-lg font-semibold">{formatDate(order.order_date)}</p>
+                <p className="text-lg font-semibold">{formatDateWithLongMonth(order.order_date)}</p>
               </div>
 
               {order.expected_delivery_date && (
@@ -124,7 +119,7 @@ const OrderDetails = ({ order, onClose }) => {
                     <Calendar className="h-4 w-4 text-blue-500" />
                     <span className="text-sm font-medium text-gray-700">Expected Delivery</span>
                   </div>
-                  <p className="text-lg font-semibold text-blue-600">{formatDate(order.expected_delivery_date)}</p>
+                  <p className="text-lg font-semibold text-blue-600">{formatDateWithLongMonth(order.expected_delivery_date)}</p>
                 </div>
               )}
 
@@ -134,7 +129,7 @@ const OrderDetails = ({ order, onClose }) => {
                     <Calendar className="h-4 w-4 text-green-500" />
                     <span className="text-sm font-medium text-gray-700">Delivered Date</span>
                   </div>
-                  <p className="text-lg font-semibold text-green-600">{formatDate(order.delivered_date)}</p>
+                  <p className="text-lg font-semibold text-green-600">{formatDateWithLongMonth(order.delivered_date)}</p>
                 </div>
               )}
 
@@ -172,18 +167,18 @@ const OrderDetails = ({ order, onClose }) => {
                     {order.expected_delivery_date && (
                       <div>
                         <span className="text-green-700">Expected Date: </span>
-                        <span className="font-medium">{formatDate(order.expected_delivery_date)}</span>
+                        <span className="font-medium">{formatDateWithLongMonth(order.expected_delivery_date)}</span>
                       </div>
                     )}
                     {order.delivered_date && (
                       <div>
                         <span className="text-green-700">Actual Delivery: </span>
-                        <span className="font-medium">{formatDate(order.delivered_date)}</span>
+                        <span className="font-medium">{formatDateWithLongMonth(order.delivered_date)}</span>
                       </div>
                     )}
                     {order.expected_delivery_date && order.delivered_date && (
                       <div className="md:col-span-2">
-                        {new Date(order.delivered_date) <= new Date(order.expected_delivery_date) ? (
+                        {isOnOrBefore(order.delivered_date, order.expected_delivery_date) ? (
                           <span className="text-green-600 text-sm font-medium">✓ Delivered on time</span>
                         ) : (
                           <span className="text-orange-600 text-sm font-medium">⚠ Delivered late</span>

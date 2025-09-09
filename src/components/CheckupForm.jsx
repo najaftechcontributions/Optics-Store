@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { X, Save, Eye, Calendar, User, Stethoscope } from 'lucide-react';
 import { checkupService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { getCurrentDateForInput } from '../utils/dateUtils';
+import DatePicker from './DatePicker';
 
 const CheckupForm = ({ customer, checkup, onClose }) => {
   const { currentStore } = useStore();
   const [formData, setFormData] = useState({
-    date: checkup?.date || new Date().toISOString().split('T')[0],
+    date: checkup?.date || getCurrentDateForInput(),
     // Right Eye
     right_eye_spherical_dv: checkup?.right_eye_spherical_dv || '',
     right_eye_cylindrical_dv: checkup?.right_eye_cylindrical_dv || '',
@@ -341,13 +343,12 @@ const CheckupForm = ({ customer, checkup, onClose }) => {
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Examination Date *
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  className="input-field"
                   required
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
               <div>

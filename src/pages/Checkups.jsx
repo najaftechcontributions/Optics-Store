@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Eye, Calendar, User, ArrowLeft, FileText, Clock } from 'lucide-react';
 import { customerService, checkupService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { formatDateWithShortMonth } from '../utils/dateUtils';
 import CheckupForm from '../components/CheckupForm';
 import CheckupDisplay from '../components/CheckupDisplay';
 import { showInfo, showDeleteConfirmation, showError } from '../utils/sweetAlert';
@@ -122,7 +123,7 @@ const Checkups = () => {
     }
 
     const confirmed = await showDeleteConfirmation(
-      `checkup from ${formatDate(checkup.date)}`,
+      `checkup from ${formatDateWithShortMonth(checkup.date)}`,
       'This action cannot be undone.'
     );
 
@@ -154,13 +155,6 @@ const Checkups = () => {
     setShowForm(false);
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   if (viewMode === 'customer' && selectedCustomer) {
     return (
@@ -321,7 +315,7 @@ const Checkups = () => {
                     <div className="text-xs sm:text-sm text-gray-500">
                       <span className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                        <span>{formatDate(checkup.date)}</span>
+                        <span>{formatDateWithShortMonth(checkup.date)}</span>
                       </span>
                       {checkup.tested_by && (
                         <p className="mt-1">Tested by: {checkup.tested_by}</p>
@@ -380,7 +374,7 @@ const Checkups = () => {
                       <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{customer.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-600">{customer.phone}</p>
                       <p className="text-xs text-gray-500">
-                        Customer since {formatDate(customer.created_at)}
+                        Customer since {formatDateWithShortMonth(customer.created_at)}
                       </p>
                     </div>
                     <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />

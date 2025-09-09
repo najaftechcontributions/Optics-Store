@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Eye, ShoppingCart, Calendar, Phone, MapPin, User } from 'lucide-react';
 import { checkupService, orderService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
+import { formatDateWithShortMonth } from '../utils/dateUtils';
 import CheckupDisplay from './CheckupDisplay';
 
 const CustomerDetails = ({ customer, onClose }) => {
@@ -43,13 +44,6 @@ const CustomerDetails = ({ customer, onClose }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   const formatCurrency = (amount) => {
     return `Rs. ${amount?.toFixed(2) || '0.00'}`;
@@ -144,9 +138,9 @@ const CustomerDetails = ({ customer, onClose }) => {
               </div>
               
               <div className="pt-4 border-t border-gray-200 text-sm text-gray-500">
-                <p>Customer since: {formatDate(customer.created_at)}</p>
+                <p>Customer since: {formatDateWithShortMonth(customer.created_at)}</p>
                 {customer.updated_at !== customer.created_at && (
-                  <p>Last updated: {formatDate(customer.updated_at)}</p>
+                  <p>Last updated: {formatDateWithShortMonth(customer.updated_at)}</p>
                 )}
               </div>
             </div>
@@ -186,16 +180,16 @@ const CustomerDetails = ({ customer, onClose }) => {
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
                             <Calendar className="h-4 w-4 text-gray-400" />
-                            <span className="font-medium">Order Date: {formatDate(order.order_date)}</span>
+                            <span className="font-medium">Order Date: {formatDateWithShortMonth(order.order_date)}</span>
                           </div>
                           {order.delivered_date && (
                             <div className="text-sm text-gray-600">
-                              Delivered: {formatDate(order.delivered_date)}
+                              Delivered: {formatDateWithShortMonth(order.delivered_date)}
                             </div>
                           )}
                           {order.expected_delivery_date && !order.delivered_date && (
                             <div className="text-sm text-gray-600">
-                              Expected: {formatDate(order.expected_delivery_date)}
+                              Expected: {formatDateWithShortMonth(order.expected_delivery_date)}
                             </div>
                           )}
                         </div>

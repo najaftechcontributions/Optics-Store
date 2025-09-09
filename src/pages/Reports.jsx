@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, DollarSign, TrendingUp, FileText, Download, BarChart3, Store, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Calendar, DollarSign, TrendingUp, FileText, Download, BarChart3, Store, ChevronDown, Search, X } from 'lucide-react';
 import { orderService, superAdminService, storeService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
+import { getTodayFormatted, getWeekStart, getWeekEnd, getMonthStart, getMonthEnd, formatDate } from '../utils/dateUtils';
+import DatePicker from '../components/DatePicker';
 
 const Reports = () => {
   const { currentStore, isSuperAdmin } = useStore();
   const [reportType, setReportType] = useState('daily');
-  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState(getTodayFormatted());
+  const [endDate, setEndDate] = useState(getTodayFormatted());
   const [reportData, setReportData] = useState([]);
   const [reportMode, setReportMode] = useState('consolidated'); // 'consolidated' or 'by_store'
   const [availableStores, setAvailableStores] = useState([]);
@@ -23,6 +24,7 @@ const Reports = () => {
   });
   const [loading, setLoading] = useState(false);
   const [storesLoading, setStoresLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     generateReport();
@@ -54,16 +56,16 @@ const Reports = () => {
     const today = new Date();
     switch (reportType) {
       case 'daily':
-        setStartDate(format(today, 'yyyy-MM-dd'));
-        setEndDate(format(today, 'yyyy-MM-dd'));
+        setStartDate(getTodayFormatted());
+        setEndDate(getTodayFormatted());
         break;
       case 'weekly':
-        setStartDate(format(startOfWeek(today), 'yyyy-MM-dd'));
-        setEndDate(format(endOfWeek(today), 'yyyy-MM-dd'));
+        setStartDate(getWeekStart(today));
+        setEndDate(getWeekEnd(today));
         break;
       case 'monthly':
-        setStartDate(format(startOfMonth(today), 'yyyy-MM-dd'));
-        setEndDate(format(endOfMonth(today), 'yyyy-MM-dd'));
+        setStartDate(getMonthStart(today));
+        setEndDate(getMonthEnd(today));
         break;
       default:
         break;
@@ -151,13 +153,7 @@ const Reports = () => {
     return `Rs. ${amount?.toFixed(2) || '0.00'}`;
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+
 
   const exportReport = () => {
     const headers = isSuperAdmin
@@ -248,6 +244,32 @@ const Reports = () => {
       return store?.name || 'Unknown store';
     }
     return `${selectedStores.length} stores selected`;
+  };
+
+  // Filter report data based on search term
+  const filteredReportData = useMemo(() => {
+    if (!searchTerm.trim()) return reportData;
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    return reportData.filter(row => {
+      const searchableFields = [
+        row.id?.toString() || '',
+        row.customer_name || '',
+        row.customer_phone || '',
+        row.frame || '',
+        row.lenses || '',
+        row.status || '',
+        row.store_name || ''
+      ];
+
+      return searchableFields.some(field =>
+        field.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [reportData, searchTerm]);
+
+  const clearSearch = () => {
+    setSearchTerm('');
   };
 
   const summaryCards = [
@@ -402,11 +424,10 @@ const Reports = () => {
               <Calendar className="h-4 w-4 inline mr-1" />
               Start Date
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="input-field"
+              placeholder="dd/mm/yyyy"
             />
           </div>
 
@@ -416,11 +437,10 @@ const Reports = () => {
               <Calendar className="h-4 w-4 inline mr-1" />
               End Date
             </label>
-            <input
-              type="date"
+            <DatePicker
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="input-field"
+              placeholder="dd/mm/yyyy"
             />
           </div>
 
@@ -467,9 +487,33 @@ const Reports = () => {
       {/* Report Data Table */}
       <div className="card">
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Order Details ({reportData.length} {reportData.length === 1 ? 'order' : 'orders'})
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Order Details ({filteredReportData.length} of {reportData.length} {reportData.length === 1 ? 'order' : 'orders'})
+            </h2>
+
+            {/* Search Input */}
+            <div className="relative max-w-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full text-sm"
+              />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-gray-600"
+                >
+                  <X className="h-4 w-4 text-gray-400" />
+                </button>
+              )}
+            </div>
+          </div>
 
           {loading ? (
             <div className="text-center py-8">
@@ -482,9 +526,23 @@ const Reports = () => {
               <p>No orders found for the selected period</p>
               <p className="text-sm">Try adjusting your date range</p>
             </div>
+          ) : filteredReportData.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No orders match your search criteria</p>
+              <p className="text-sm">Try adjusting your search term</p>
+              <button
+                onClick={clearSearch}
+                className="mt-2 text-primary-600 hover:text-primary-700 text-sm font-medium"
+              >
+                Clear search
+              </button>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-x-auto w-full">
+              <div className="inline-block min-w-full align-middle">
+                <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -519,7 +577,7 @@ const Reports = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {reportData.map((row, index) => (
+                  {filteredReportData.map((row, index) => (
                     <tr key={row.id || index} className="hover:bg-gray-50">
                       <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-mono text-gray-900">
                         #{row.id || 'N/A'}
@@ -566,7 +624,9 @@ const Reports = () => {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
         </div>
