@@ -75,7 +75,13 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
       onClose();
     } catch (error) {
       console.error('Error saving customer:', error);
-      setErrors({ general: 'Error saving customer. Please try again.' });
+
+      // Handle specific error messages
+      if (error.message && error.message.includes('phone number') && error.message.includes('already exists')) {
+        setErrors({ phone: error.message });
+      } else {
+        setErrors({ general: error.message || 'Error saving customer. Please try again.' });
+      }
     } finally {
       setLoading(false);
     }

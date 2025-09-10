@@ -13,6 +13,110 @@ const generateId = () => {
   return Date.now() + Math.random().toString(36).substr(2, 9);
 };
 
+const generateCustomerId = async (storeId) => {
+  try {
+    // Get all existing numeric customer IDs for this store, sorted in ascending order
+    const result = await client.execute({
+      sql: `
+        SELECT id FROM customers
+        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        ORDER BY CAST(id AS INTEGER) ASC
+      `,
+      args: [storeId]
+    });
+
+    // Extract the numeric IDs and sort them
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+
+    // Find the first gap in the sequence or get the next number after the highest
+    let nextCustomerNumber = 1;
+
+    for (let i = 0; i < existingNumbers.length; i++) {
+      if (existingNumbers[i] !== nextCustomerNumber) {
+        // Found a gap, use this number
+        break;
+      }
+      nextCustomerNumber++;
+    }
+
+    // Format as 3-digit padded string (001, 002, etc.)
+    return nextCustomerNumber.toString().padStart(3, '0');
+  } catch (error) {
+    console.error('Error generating customer ID:', error);
+    // Fallback to sequential numbering starting from 001
+    return '001';
+  }
+};
+
+const generateCheckupId = async (storeId) => {
+  try {
+    // Get all existing numeric checkup IDs for this store, sorted in ascending order
+    const result = await client.execute({
+      sql: `
+        SELECT id FROM checkups
+        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        ORDER BY CAST(id AS INTEGER) ASC
+      `,
+      args: [storeId]
+    });
+
+    // Extract the numeric IDs and sort them
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+
+    // Find the first gap in the sequence or get the next number after the highest
+    let nextCheckupNumber = 1;
+
+    for (let i = 0; i < existingNumbers.length; i++) {
+      if (existingNumbers[i] !== nextCheckupNumber) {
+        // Found a gap, use this number
+        break;
+      }
+      nextCheckupNumber++;
+    }
+
+    // Format as 3-digit padded string (001, 002, etc.)
+    return nextCheckupNumber.toString().padStart(3, '0');
+  } catch (error) {
+    console.error('Error generating checkup ID:', error);
+    // Fallback to sequential numbering starting from 001
+    return '001';
+  }
+};
+
+const generateStoreId = async () => {
+  try {
+    // Get all existing numeric store IDs, sorted in ascending order
+    const result = await client.execute({
+      sql: `
+        SELECT id FROM stores
+        WHERE LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        ORDER BY CAST(id AS INTEGER) ASC
+      `
+    });
+
+    // Extract the numeric IDs and sort them
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+
+    // Find the first gap in the sequence or get the next number after the highest
+    let nextStoreNumber = 1;
+
+    for (let i = 0; i < existingNumbers.length; i++) {
+      if (existingNumbers[i] !== nextStoreNumber) {
+        // Found a gap, use this number
+        break;
+      }
+      nextStoreNumber++;
+    }
+
+    // Format as 3-digit padded string (001, 002, etc.)
+    return nextStoreNumber.toString().padStart(3, '0');
+  } catch (error) {
+    console.error('Error generating store ID:', error);
+    // Fallback to sequential numbering starting from 001
+    return '001';
+  }
+};
+
 const generateOrderId = async (storeId) => {
   try {
     // Get all existing numeric order IDs for this store, sorted in ascending order
@@ -144,7 +248,7 @@ const initDatabase = async () => {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (store_id) REFERENCES stores (id),
-          UNIQUE(store_id, phone)
+          UNIQUE(store_id, phone) ON CONFLICT REPLACE
         )
       `);
 
@@ -232,7 +336,7 @@ const getDatabase = async () => {
 // Store operations
 const storeService = {
   create: async (store) => {
-    const id = generateId();
+    const id = await generateStoreId();
     const result = await client.execute({
       sql: `INSERT INTO stores (id, name, address, phone, email, pin)
             VALUES (?, ?, ?, ?, ?, ?)`,
@@ -303,7 +407,15 @@ const storeService = {
 // Customer operations
 const customerService = {
   create: async (customer, storeId) => {
-    const id = generateId();
+    // Check if customer with this phone already exists for this store
+    if (customer.phone && customer.phone.trim()) {
+      const existingCustomer = await customerService.findByPhone(customer.phone.trim(), storeId);
+      if (existingCustomer) {
+        throw new Error(`Customer with phone number ${customer.phone} already exists in this store.`);
+      }
+    }
+
+    const id = await generateCustomerId(storeId);
     const result = await client.execute({
       sql: `INSERT INTO customers (id, store_id, name, phone, email, address, date_of_birth, remarks)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -354,6 +466,14 @@ const customerService = {
   },
 
   update: async (id, customer, storeId) => {
+    // Check if another customer with this phone already exists for this store
+    if (customer.phone && customer.phone.trim()) {
+      const existingCustomer = await customerService.findByPhone(customer.phone.trim(), storeId);
+      if (existingCustomer && existingCustomer.id !== id) {
+        throw new Error(`Another customer with phone number ${customer.phone} already exists in this store.`);
+      }
+    }
+
     const result = await client.execute({
       sql: `UPDATE customers
             SET name = ?, phone = ?, email = ?, address = ?, date_of_birth = ?, remarks = ?, updated_at = CURRENT_TIMESTAMP
@@ -376,7 +496,7 @@ const customerService = {
 // Checkup operations
 const checkupService = {
   create: async (checkup, storeId) => {
-    const id = generateId();
+    const id = await generateCheckupId(storeId);
     const result = await client.execute({
       sql: `INSERT INTO checkups (id, store_id, customer_id, date, right_eye_spherical_dv, right_eye_cylindrical_dv,
                                   right_eye_axis_dv, right_eye_add, right_eye_spherical_nv, right_eye_cylindrical_nv,
