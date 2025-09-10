@@ -4,14 +4,14 @@ import {
   ChevronRight, ChevronLeft, Check, Calendar, Phone,
   MapPin, DollarSign, Package, FileText
 } from 'lucide-react';
-import { customerService, checkupService, orderService } from '../utils/database';
+import { customerService, checkupService, orderService, storeService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
 import { getCurrentDateForInput, getCurrentTimestamp, formatDate } from '../utils/dateUtils';
 import CheckupDisplay from './CheckupDisplay';
 import DatePicker from './DatePicker';
 
 const OrderWizard = ({ onClose }) => {
-  const { currentStore } = useStore();
+  const { currentStore, logout } = useStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerSearch, setCustomerSearch] = useState('');
@@ -170,11 +170,26 @@ const OrderWizard = ({ onClose }) => {
       if (currentStep === 1) {
         // Step 1: Handle customer creation/selection
         let customer = selectedCustomer;
-        
+
         if (showNewCustomerForm) {
           if (!currentStore) {
             throw new Error('No store selected');
           }
+
+          // Validate that the store still exists in the database
+          const storeExists = await storeService.getById(currentStore.id);
+          if (!storeExists) {
+            throw new Error('Store no longer exists. Please log in again.');
+          }
+
+          // Check if a customer with this phone number already exists in the store
+          if (newCustomerData.phone.trim()) {
+            const existingCustomer = await customerService.findByPhone(newCustomerData.phone.trim(), currentStore.id);
+            if (existingCustomer) {
+              throw new Error(`A customer with phone number "${newCustomerData.phone}" already exists: ${existingCustomer.name}. Please select the existing customer or use a different phone number.`);
+            }
+          }
+
           const result = await customerService.create(newCustomerData, currentStore.id);
           customer = {
             ...newCustomerData,
@@ -188,24 +203,33 @@ const OrderWizard = ({ onClose }) => {
           setNewCustomerData({ name: '', phone: '', address: '', remarks: '' });
           loadCustomers(); // Refresh customer list
         }
-        
+
         setCurrentStep(2);
       } else if (currentStep === 2) {
         // Step 2: Create checkup
         if (!currentStore) {
           throw new Error('No store selected');
         }
+        if (!selectedCustomer?.id) {
+          throw new Error('No customer selected');
+        }
+
         const checkupResult = await checkupService.create({
           ...checkupData,
           customer_id: selectedCustomer.id
         }, currentStore.id);
-        
+
+        console.log('Checkup created with result:', checkupResult);
+
         const newCheckup = {
           ...checkupData,
           id: checkupResult.lastInsertRowid,
           customer_id: selectedCustomer.id,
+          store_id: currentStore.id,
           created_at: getCurrentTimestamp()
         };
+
+        console.log('Setting completed checkup:', newCheckup);
         setCompletedCheckup(newCheckup);
         setCurrentStep(3);
       } else if (currentStep === 3) {
@@ -213,6 +237,17 @@ const OrderWizard = ({ onClose }) => {
         if (!currentStore) {
           throw new Error('No store selected');
         }
+        if (!selectedCustomer?.id) {
+          throw new Error('No customer selected');
+        }
+
+        console.log('Creating order with data:', {
+          customer_id: selectedCustomer.id,
+          checkup_id: completedCheckup?.id,
+          store_id: currentStore.id,
+          orderData: orderData
+        });
+
         const orderResult = await orderService.create({
           ...orderData,
           customer_id: selectedCustomer.id,
@@ -224,7 +259,6 @@ const OrderWizard = ({ onClose }) => {
 
         // Show success message briefly before closing
         if (orderResult.lastInsertRowid) {
-          // Could add a success toast here in the future
           console.log('Order created successfully with ID:', orderResult.lastInsertRowid);
         }
 
@@ -232,7 +266,20 @@ const OrderWizard = ({ onClose }) => {
       }
     } catch (error) {
       console.error('Error in wizard step:', error);
-      setErrors({ general: 'An error occurred. Please try again.' });
+
+      if (error.message === 'Store no longer exists. Please log in again.') {
+        // Store was deleted, log out user and close wizard
+        logout();
+        onClose();
+        alert('Your store session has expired or the store was deleted. Please log in again.');
+        return;
+      }
+
+      if (error.message.includes('FOREIGN KEY constraint failed')) {
+        setErrors({ general: 'Database error: Invalid store reference. Please log out and log back in.' });
+      } else {
+        setErrors({ general: error.message || 'An error occurred. Please try again.' });
+      }
     } finally {
       setLoading(false);
     }

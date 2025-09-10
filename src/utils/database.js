@@ -483,29 +483,65 @@ const checkupService = {
 // Order operations
 const orderService = {
   create: async (order, storeId) => {
-    const id = await generateOrderId(storeId);
-    const result = await client.execute({
-      sql: `INSERT INTO orders (id, store_id, customer_id, checkup_id, order_date, expected_delivery_date, delivered_date, frame,
-                               lenses, total_amount, advance_amount, balance_amount, status, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        id,
-        storeId,
-        order.customer_id,
-        order.checkup_id || null,
-        order.order_date || getCurrentDateForInput(),
-        order.expected_delivery_date || null,
-        order.delivered_date || null,
-        order.frame || null,
-        order.lenses || null,
-        order.total_amount || 0,
-        order.advance_amount || 0,
-        order.balance_amount || 0,
-        order.status || 'pending',
-        order.notes || null
-      ]
-    });
-    return { lastInsertRowid: id };
+    // Validate foreign key references before attempting to create the order
+    try {
+      // Validate store exists
+      const storeCheck = await client.execute({
+        sql: 'SELECT id FROM stores WHERE id = ?',
+        args: [storeId]
+      });
+      if (storeCheck.rows.length === 0) {
+        throw new Error(`Store with ID ${storeId} does not exist`);
+      }
+
+      // Validate customer exists and belongs to the store
+      const customerCheck = await client.execute({
+        sql: 'SELECT id FROM customers WHERE id = ? AND store_id = ?',
+        args: [order.customer_id, storeId]
+      });
+      if (customerCheck.rows.length === 0) {
+        throw new Error(`Customer with ID ${order.customer_id} does not exist in store ${storeId}`);
+      }
+
+      // Validate checkup exists and belongs to the store (if checkup_id is provided)
+      if (order.checkup_id) {
+        const checkupCheck = await client.execute({
+          sql: 'SELECT id FROM checkups WHERE id = ? AND store_id = ? AND customer_id = ?',
+          args: [order.checkup_id, storeId, order.customer_id]
+        });
+        if (checkupCheck.rows.length === 0) {
+          throw new Error(`Checkup with ID ${order.checkup_id} does not exist for customer ${order.customer_id} in store ${storeId}`);
+        }
+      }
+
+      const id = await generateOrderId(storeId);
+      const result = await client.execute({
+        sql: `INSERT INTO orders (id, store_id, customer_id, checkup_id, order_date, expected_delivery_date, delivered_date, frame,
+                                 lenses, total_amount, advance_amount, balance_amount, status, notes)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          id,
+          storeId,
+          order.customer_id,
+          order.checkup_id || null,
+          order.order_date || getCurrentDateForInput(),
+          order.expected_delivery_date || null,
+          order.delivered_date || null,
+          order.frame || null,
+          order.lenses || null,
+          order.total_amount || 0,
+          order.advance_amount || 0,
+          order.balance_amount || 0,
+          order.status || 'pending',
+          order.notes || null
+        ]
+      });
+      return { lastInsertRowid: id };
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Re-throw with more context
+      throw new Error(`Failed to create order: ${error.message}`);
+    }
   },
 
   getByCustomerId: async (customerId, storeId) => {
