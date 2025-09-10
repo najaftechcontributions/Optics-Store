@@ -44,8 +44,6 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
     
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10,11}$/.test(formData.phone.replace(/\s+/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number';
     }
 
     setErrors(newErrors);
