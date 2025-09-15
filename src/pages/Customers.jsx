@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Eye, Phone, MapPin, Users } from 'lucide-react';
+import { Search, Plus, Edit, Eye, Phone, MapPin, Users, Trash2 } from 'lucide-react';
 import { customerService, superAdminService } from '../utils/database';
 import { useStore } from '../contexts/StoreContext';
 import { formatDate } from '../utils/dateUtils';
 import CustomerForm from '../components/CustomerForm';
 import CustomerDetails from '../components/CustomerDetails';
-import { showInfo } from '../utils/sweetAlert';
+import { showInfo, showDeleteConfirmation, showSuccess, showError } from '../utils/sweetAlert';
 
 const Customers = () => {
   const { currentStore, isSuperAdmin } = useStore();
@@ -94,6 +94,35 @@ const Customers = () => {
     setSelectedCustomer(null);
   };
 
+  const handleDeleteCustomer = async (customer) => {
+    if (isSuperAdmin) {
+      showInfo(
+        'Access Restricted',
+        'Super admin cannot delete customers. Please login to a specific store to delete customers.'
+      );
+      return;
+    }
+
+    try {
+      const confirmed = await showDeleteConfirmation(
+        customer.name,
+        'This will permanently delete the customer and all associated data. This action cannot be undone.'
+      );
+
+      if (confirmed) {
+        await customerService.delete(customer.id, currentStore.id);
+        showSuccess('Customer Deleted', `${customer.name} has been successfully deleted.`);
+        loadCustomers();
+      }
+    } catch (error) {
+      console.error('Error deleting customer:', error);
+      showError(
+        'Delete Failed',
+        error.message || 'Failed to delete customer. Please try again.'
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -167,13 +196,22 @@ const Customers = () => {
                         <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                       </button>
                       {!isSuperAdmin && (
-                        <button
-                          onClick={() => handleEditCustomer(customer)}
-                          className="p-1 text-gray-400 hover:text-primary-600"
-                          title="Edit Customer"
-                        >
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleEditCustomer(customer)}
+                            className="p-1 text-gray-400 hover:text-primary-600"
+                            title="Edit Customer"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCustomer(customer)}
+                            className="p-1 text-gray-400 hover:text-red-600"
+                            title="Delete Customer"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

@@ -445,7 +445,7 @@ const OrderWizard = ({ onClose }) => {
                   Phone Number *
                 </label>
                 <input
-                  type="tel"
+                  type="text"
                   name="phone"
                   value={newCustomerData.phone}
                   onChange={handleNewCustomerChange}

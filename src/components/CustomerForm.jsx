@@ -135,7 +135,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
               Phone Number *
             </label>
             <input
-              type="tel"
+              type="text"
               name="phone"
               value={formData.phone}
               onChange={handleChange}

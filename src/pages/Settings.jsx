@@ -457,7 +457,7 @@ const Settings = () => {
                     Phone
                   </label>
                   <input
-                    type="tel"
+                    type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}

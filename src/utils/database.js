@@ -490,6 +490,32 @@ const customerService = {
       ]
     });
     return { changes: result.rowsAffected };
+  },
+
+  delete: async (id, storeId) => {
+    // First check if there are any checkups or orders referencing this customer
+    const checkupsCheck = await client.execute({
+      sql: 'SELECT COUNT(*) as count FROM checkups WHERE customer_id = ? AND store_id = ?',
+      args: [id, storeId]
+    });
+
+    const ordersCheck = await client.execute({
+      sql: 'SELECT COUNT(*) as count FROM orders WHERE customer_id = ? AND store_id = ?',
+      args: [id, storeId]
+    });
+
+    const checkupCount = checkupsCheck.rows[0].count;
+    const orderCount = ordersCheck.rows[0].count;
+
+    if (checkupCount > 0 || orderCount > 0) {
+      throw new Error(`Cannot delete customer: ${checkupCount} checkup(s) and ${orderCount} order(s) are linked to this customer. Please remove the linked records first.`);
+    }
+
+    const result = await client.execute({
+      sql: 'DELETE FROM customers WHERE id = ? AND store_id = ?',
+      args: [id, storeId]
+    });
+    return { changes: result.rowsAffected };
   }
 };
 
