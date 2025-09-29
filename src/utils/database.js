@@ -19,14 +19,14 @@ const generateCustomerId = async (storeId) => {
     const result = await client.execute({
       sql: `
         SELECT id FROM customers
-        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        WHERE store_id = ? AND id GLOB '[0-9]*'
         ORDER BY CAST(id AS INTEGER) ASC
       `,
       args: [storeId]
     });
 
     // Extract the numeric IDs and sort them
-    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).filter(num => !isNaN(num)).sort((a, b) => a - b);
 
     // Find the first gap in the sequence or get the next number after the highest
     let nextCustomerNumber = 1;
@@ -39,21 +39,20 @@ const generateCustomerId = async (storeId) => {
       nextCustomerNumber++;
     }
 
-    // Ensure we don't exceed 999 (3-digit limit)
-    if (nextCustomerNumber > 999) {
-      throw new Error('Maximum number of customers (999) reached for this store');
-    }
+    // Determine minimum digits needed (start with 3, expand as needed)
+    const minDigits = Math.max(3, nextCustomerNumber.toString().length);
 
-    // Format as 3-digit padded string (001, 002, etc.)
-    return nextCustomerNumber.toString().padStart(3, '0');
+    // Format with dynamic padding
+    return nextCustomerNumber.toString().padStart(minDigits, '0');
   } catch (error) {
     console.error('Error generating customer ID:', error);
 
-    // Enhanced fallback: try to generate a random number between 1-999 that doesn't exist
+    // Enhanced fallback: try to generate a random number that doesn't exist
     try {
       for (let attempt = 0; attempt < 10; attempt++) {
-        const randomNum = Math.floor(Math.random() * 999) + 1;
-        const randomId = randomNum.toString().padStart(3, '0');
+        const randomNum = Math.floor(Math.random() * 99999) + 1;
+        const minDigits = Math.max(3, randomNum.toString().length);
+        const randomId = randomNum.toString().padStart(minDigits, '0');
 
         // Check if this random ID already exists
         const checkResult = await client.execute({
@@ -70,8 +69,9 @@ const generateCustomerId = async (storeId) => {
     }
 
     // Final fallback - use timestamp-based approach
-    const timestamp = Date.now().toString().slice(-3);
-    return timestamp.padStart(3, '0');
+    const timestamp = Date.now().toString();
+    const minDigits = Math.max(3, timestamp.length);
+    return timestamp.padStart(minDigits, '0');
   }
 };
 
@@ -81,14 +81,14 @@ const generateCheckupId = async (storeId) => {
     const result = await client.execute({
       sql: `
         SELECT id FROM checkups
-        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        WHERE store_id = ? AND id GLOB '[0-9]*'
         ORDER BY CAST(id AS INTEGER) ASC
       `,
       args: [storeId]
     });
 
     // Extract the numeric IDs and sort them
-    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).filter(num => !isNaN(num)).sort((a, b) => a - b);
 
     // Find the first gap in the sequence or get the next number after the highest
     let nextCheckupNumber = 1;
@@ -101,8 +101,11 @@ const generateCheckupId = async (storeId) => {
       nextCheckupNumber++;
     }
 
-    // Format as 3-digit padded string (001, 002, etc.)
-    return nextCheckupNumber.toString().padStart(3, '0');
+    // Determine minimum digits needed (start with 3, expand as needed)
+    const minDigits = Math.max(3, nextCheckupNumber.toString().length);
+
+    // Format with dynamic padding
+    return nextCheckupNumber.toString().padStart(minDigits, '0');
   } catch (error) {
     console.error('Error generating checkup ID:', error);
     // Fallback to sequential numbering starting from 001
@@ -116,13 +119,13 @@ const generateStoreId = async () => {
     const result = await client.execute({
       sql: `
         SELECT id FROM stores
-        WHERE LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        WHERE id GLOB '[0-9]*'
         ORDER BY CAST(id AS INTEGER) ASC
       `
     });
 
     // Extract the numeric IDs and sort them
-    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).filter(num => !isNaN(num)).sort((a, b) => a - b);
 
     // Find the first gap in the sequence or get the next number after the highest
     let nextStoreNumber = 1;
@@ -135,8 +138,11 @@ const generateStoreId = async () => {
       nextStoreNumber++;
     }
 
-    // Format as 3-digit padded string (001, 002, etc.)
-    return nextStoreNumber.toString().padStart(3, '0');
+    // Determine minimum digits needed (start with 3, expand as needed)
+    const minDigits = Math.max(3, nextStoreNumber.toString().length);
+
+    // Format with dynamic padding
+    return nextStoreNumber.toString().padStart(minDigits, '0');
   } catch (error) {
     console.error('Error generating store ID:', error);
     // Fallback to sequential numbering starting from 001
@@ -150,14 +156,14 @@ const generateOrderId = async (storeId) => {
     const result = await client.execute({
       sql: `
         SELECT id FROM orders
-        WHERE store_id = ? AND LENGTH(id) = 3 AND id GLOB '[0-9][0-9][0-9]'
+        WHERE store_id = ? AND id GLOB '[0-9]*'
         ORDER BY CAST(id AS INTEGER) ASC
       `,
       args: [storeId]
     });
 
     // Extract the numeric IDs and sort them
-    const existingNumbers = result.rows.map(row => parseInt(row.id)).sort((a, b) => a - b);
+    const existingNumbers = result.rows.map(row => parseInt(row.id)).filter(num => !isNaN(num)).sort((a, b) => a - b);
 
     // Find the first gap in the sequence or get the next number after the highest
     let nextOrderNumber = 1;
@@ -170,8 +176,11 @@ const generateOrderId = async (storeId) => {
       nextOrderNumber++;
     }
 
-    // Format as 3-digit padded string (001, 002, etc.)
-    return nextOrderNumber.toString().padStart(3, '0');
+    // Determine minimum digits needed (start with 3, expand as needed)
+    const minDigits = Math.max(3, nextOrderNumber.toString().length);
+
+    // Format with dynamic padding
+    return nextOrderNumber.toString().padStart(minDigits, '0');
   } catch (error) {
     console.error('Error generating order ID:', error);
     // Fallback to sequential numbering starting from 001
