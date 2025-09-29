@@ -39,12 +39,39 @@ const generateCustomerId = async (storeId) => {
       nextCustomerNumber++;
     }
 
+    // Ensure we don't exceed 999 (3-digit limit)
+    if (nextCustomerNumber > 999) {
+      throw new Error('Maximum number of customers (999) reached for this store');
+    }
+
     // Format as 3-digit padded string (001, 002, etc.)
     return nextCustomerNumber.toString().padStart(3, '0');
   } catch (error) {
     console.error('Error generating customer ID:', error);
-    // Fallback to sequential numbering starting from 001
-    return '001';
+
+    // Enhanced fallback: try to generate a random number between 1-999 that doesn't exist
+    try {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const randomNum = Math.floor(Math.random() * 999) + 1;
+        const randomId = randomNum.toString().padStart(3, '0');
+
+        // Check if this random ID already exists
+        const checkResult = await client.execute({
+          sql: 'SELECT id FROM customers WHERE id = ? AND store_id = ?',
+          args: [randomId, storeId]
+        });
+
+        if (checkResult.rows.length === 0) {
+          return randomId;
+        }
+      }
+    } catch (fallbackError) {
+      console.error('Error in fallback ID generation:', fallbackError);
+    }
+
+    // Final fallback - use timestamp-based approach
+    const timestamp = Date.now().toString().slice(-3);
+    return timestamp.padStart(3, '0');
   }
 };
 
@@ -415,22 +442,48 @@ const customerService = {
       }
     }
 
-    const id = await generateCustomerId(storeId);
-    const result = await client.execute({
-      sql: `INSERT INTO customers (id, store_id, name, phone, email, address, date_of_birth, remarks)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        id,
-        storeId,
-        customer.name || '',
-        customer.phone || '',
-        customer.email || null,
-        customer.address || null,
-        customer.date_of_birth || null,
-        customer.remarks || null
-      ]
-    });
-    return { lastInsertRowid: id };
+    // Retry mechanism for handling ID collisions
+    const maxRetries = 5;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        const id = await generateCustomerId(storeId);
+        const result = await client.execute({
+          sql: `INSERT INTO customers (id, store_id, name, phone, email, address, date_of_birth, remarks)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [
+            id,
+            storeId,
+            customer.name || '',
+            customer.phone || '',
+            customer.email || null,
+            customer.address || null,
+            customer.date_of_birth || null,
+            customer.remarks || null
+          ]
+        });
+        return { lastInsertRowid: id };
+      } catch (error) {
+        // If it's a UNIQUE constraint violation on the ID, retry with a new ID
+        if (error.message && error.message.includes('UNIQUE constraint failed: customers.id')) {
+          attempt++;
+          console.log(`Customer ID collision detected, retrying... (attempt ${attempt}/${maxRetries})`);
+
+          if (attempt >= maxRetries) {
+            console.error('Max retries reached for customer ID generation');
+            throw new Error('Unable to generate unique customer ID after multiple attempts. Please try again.');
+          }
+
+          // Add a small delay to reduce collision probability
+          await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
+          continue;
+        }
+
+        // If it's any other error, throw it immediately
+        throw error;
+      }
+    }
   },
 
   findByPhone: async (phone, storeId) => {
